@@ -17,9 +17,18 @@ Route::get('/', function () {
 
     $f = new \Webarq\Manager\HTML\FormManager(true);
     $f->setTitle('My Form');
-    $f->addCollection('text', 'name', function($input){
-        $input->setContainer('div')->setLabel('Full Name')->setInfo('Insert your name according to your ID Card');
-    });
+//    $f->addCollection('text', 'name', function($input){
+//        $input->setContainer('div')->setLabel('Full Name')->setInfo('Insert your name according to your ID Card');
+//    });
+    $f->addCollection('text', 'name')
+            ->setContainer('div')
+            ->setLabel('Full Name')
+            ->setInfo('Insert your name according to your ID Card');
+    $f->addCollectionGroup(['text', 'email', function($input){
+        $input
+                ->setContainer('div')
+                ->setLabel('Email')
+                ->setInfo('Insert your valid email');}], ['textarea', 'address']);
 
     return $f->toHtml();
 });

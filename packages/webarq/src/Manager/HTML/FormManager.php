@@ -13,6 +13,7 @@ namespace Webarq\Manager\HTML;
 
 use Illuminate\Contracts\Support\Htmlable;
 use Wa;
+use Webarq\Manager\HTML\Form\InputManager;
 
 /**
  * Class FormManager
@@ -28,9 +29,9 @@ class FormManager implements Htmlable
     /**
      * @var array
      */
-    protected $collections = [];
+    protected $inputs = [];
 
-    public function __construct($action, $attributes = [], $container = 'div')
+    public function __construct($action = null, $attributes = [], $container = 'div')
     {
 
     }
@@ -49,17 +50,23 @@ class FormManager implements Htmlable
      * Add collections and display it as inline group
      * See addCollection, for arguments
      *
-     * @param array $inputs
+     * @param array|callback $inputs
      * @return FormManager
      */
-    public function addCollectionGroup(array $inputs)
+    public function addCollectionGroup($inputs = [])
     {
-        $inputs = func_get_args();
-        foreach ($inputs as &$input) {
-            $input = Wa::html('form.input',$input);
-        }
+        if (is_callable($inputs)) {
+            abort(500, 'Not implemented yet. Not to sure if we need this way of programming');
+//            $inputs($c = new self());
+//            $this->inputs[] = $c->inputs;
+        } else {
+            $inputs = func_get_args();
+            foreach ($inputs as &$input) {
+                $input = new InputManager($input);
+            }
 
-        $this->collections[] = $inputs;
+            $this->inputs[] = $inputs;
+        }
 
         return $this;
     }
@@ -72,7 +79,7 @@ class FormManager implements Htmlable
      * it as last arguments).
      *
      * @param mixed $args
-     * @return FormManager
+     * @return InputManager
      */
     public function addCollection($args = [])
     {
@@ -80,7 +87,7 @@ class FormManager implements Htmlable
         if (is_array($args[0])) {
             call_user_func_array(array($this,'addCollectionGroup'), $args);
         } else {
-            $this->collections[] = Wa::html('form.input', $args);
+            return $this->inputs[] = new InputManager($args);
         }
 
         return $this;
@@ -88,9 +95,9 @@ class FormManager implements Htmlable
 
     public function toHtml()
     {
-        if ([] !== $this->collections) {
+        if ([] !== $this->inputs) {
             $s = '';
-            foreach ($this->collections as $collection) {
+            foreach ($this->inputs as $collection) {
                 if (is_array($collection)) {
                     foreach ($collection as $sub) {
                         $s .= $sub->toHtml();
