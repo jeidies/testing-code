@@ -26,34 +26,71 @@ class InputManager implements Htmlable
      */
     protected $info;
 
-    protected $container = '<div class="form-group"></div>';
+    /**
+     * Default container
+     *
+     * @var array
+     */
+    protected $containers = [
+            'input' => '<div class="form-group"></div>',
+            'info' => '<small id="fileHelp" class="form-text text-muted"></small>',
+            'label' => '<label class="control-label"></label>'
+    ];
 
-    public function __construct(array $args)
+    /**
+     * @param array $args
+     * @param null $label
+     * @param null $info
+     * @param string $container
+     */
+    public function __construct(array $args, $label = null, $info = null, $container = '<div class="form-group"></div>')
     {
         foreach ($args as $i => $arg) {
-            if (is_callable($arg)) {
-                $arg($this);
+            if (!is_string($arg) && is_callable($arg)) {
+// Remove callback from $args
                 unset($args[$i]);
+// $args should only contain one callback item
+                break;
             }
         }
-//Shift input type
+// Shift input type
         $type = array_shift($args);
-// Call laravel form type method
+// Set input by calling laravel form type method
         $this->input = call_user_func_array(array(app('form'), $type), $args);
+// Warning!!!
+// Do not change code sequence
+        $this->setContainer($container, 'input');
+        $this->setLabel($label);
+        $this->setInfo($info);
+        if (is_callable($arg)) {
+            $arg($this);
+        }
     }
 
     /**
      * Decoration function.
      * Set container decoration
      *
-     * @param $value
+     * @param mixed $value
+     * @param string $key
      * @return InputManager
      */
-    public function setContainer($value)
+    public function setContainer($value, $key = 'input')
     {
-        $this->container = $value;
+        if (!is_null($value)) {
+            if (!is_array($value)) {
+                $this->containers[$key] = $value;
+            } else {
+                $this->containers = $value + $this->containers;
+            }
+        }
 
         return $this;
+    }
+
+    public function getLabel()
+    {
+        return $this->label;
     }
 
     /**
@@ -61,14 +98,19 @@ class InputManager implements Htmlable
      * Set label decoration
      *
      * @param mixed $value
-     * @param string $container Html tag name or full html tag (with any attributes)
+     * @param null|string $container Html tag name or full html tag (with any attributes)
      * @return InputManager
      */
-    public function setLabel($value, $container = '<label class="control-label"></label>')
+    public function setLabel($value, $container = null)
     {
-        $this->label = new ElementManager($value, $container);
+        $this->label = new ElementManager($value, $container ? : $this->containers['label']);
 
         return $this;
+    }
+
+    public function getInfo()
+    {
+        return $this->info;
     }
 
     /**
@@ -79,23 +121,31 @@ class InputManager implements Htmlable
      * @param string $container Html tag name or full html tag (with any attributes)
      * @return InputManager
      */
-    public function setInfo($value, $container = '<small id="fileHelp" class="form-text text-muted"></small>')
+    public function setInfo($value, $container = null)
     {
-        $this->info = new ElementManager($value, $container);
+        $this->info = new ElementManager($value, $container ? : $this->containers['info']);
 
         return $this;
     }
 
     public function toHtml()
     {
-        $str = '';
         if (isset($this->label) && $this->label instanceof ElementManager) {
-            $str .= $this->label->toHtml();
+            $this->label = $this->label->toHtml();
         }
-        $str .= $this->input->toHtml();
         if (isset($this->info) && $this->info instanceof ElementManager) {
-            $str .= $this->info->toHtml();
+            $this->info = $this->info->toHtml();
         }
-        return (new ElementManager($str, $this->container))->toHtml();
+        $input = $this->input->toHtml();
+        if (starts_with($this->containers['input'], ':')) {
+            return view(substr($this->containers['input'], 1), [
+                    'label' => $this->label,
+                    'info' => $this->info,
+                    'input' => $input
+            ]);
+        } else {
+            return (new ElementManager($this->label . $input . $this->info, $this->containers['input']))
+                    ->toHtml();
+        }
     }
 }

@@ -27,6 +27,8 @@ namespace Webarq\Manager;
  *
  * Class ConfigManager
  * @package Webarq\Manager
+ * @throws \Exception
+ * @throws \Throwable
  */
 class ConfigManager
 {
@@ -61,6 +63,8 @@ class ConfigManager
      * @param $path
      * @param mixed $default
      * @return null
+     * @throws \Exception
+     * @throws \Throwable
      */
     public static function get($path, $default = null)
     {

@@ -80,6 +80,8 @@ class TableInfo
     }
 
     /**
+     * Setup class environment
+     *
      * @param array $configs
      */
     protected function setup(array $configs)
@@ -110,6 +112,8 @@ class TableInfo
     }
 
     /**
+     * Set column options in to table
+     *
      * @param array $options
      */
     protected function setColumn(array $options)
@@ -124,6 +128,8 @@ class TableInfo
     }
 
     /**
+     * Get column options from table by column name
+     *
      * @param $name
      * @return mixed
      */
@@ -159,6 +165,8 @@ class TableInfo
     }
 
     /**
+     * Get table module
+     *
      * @return string
      */
     public function getModule()

@@ -243,4 +243,13 @@ class Wa
         array_shift($args);
         return $this->load('manager.HTML!.' . $class, $args, $this->getGhost());
     }
+
+    public function element($content, $container, array $attr = [])
+    {
+        if (is_bool($attr)) {
+            $toHtml = $attr;
+            $attr = [];
+        }
+        return $this->html('element',$content, $container, $attr)->toHtml();
+    }
 }

@@ -12,23 +12,27 @@
 */
 
 Route::get('/', function () {
-//    $g = new \Webarq\Manager\HTML\NodeManager('div.p.span');
-//    dd($g);
+    $f = new \Webarq\Manager\HTML\FormManager('http://submitter.com', 'frm-detail');
+    $f->setTitle('Registration Form');
+    $f->setElementLabelDefaultContainer(':webarq.form.default.label')
+            ->setElementInfoDefaultContainer(':webarq.form.default.info');
 
-    $f = new \Webarq\Manager\HTML\FormManager(true);
-    $f->setTitle('My Form');
-//    $f->addCollection('text', 'name', function($input){
-//        $input->setContainer('div')->setLabel('Full Name')->setInfo('Insert your name according to your ID Card');
-//    });
-    $f->addCollection('text', 'name')
-            ->setContainer('div')
-            ->setLabel('Full Name')
-            ->setInfo('Insert your name according to your ID Card');
-    $f->addCollectionGroup(['text', 'email', function($input){
-        $input
-                ->setContainer('div')
-                ->setLabel('Email')
-                ->setInfo('Insert your valid email');}], ['textarea', 'address']);
 
-    return $f->toHtml();
+    $f->addCollection('text', 'username')
+            ->setContainer(':webarq.form.default.item');
+    $f->addCollection('password', 'password')
+            ->setLabel('Password')
+            ->setInfo('Combine your password with punctuation mark, alphanumeric character');
+    $f->addCollection('text', 'email', function($input){
+        $input->setInfo('Insert your valid email');
+    });
+
+    $f->addCollectionGroup(
+            [['text', 'full name'], null, 'Insert your name according to your ID Card'],
+            ['text', 'sex', 'value', function($input){
+                $input->setLabel('Gender');
+            }],
+            ':webarq.form.default.group');
+
+    return '<htm><body style="margin:30px auto;width:20%;">' . $f->toHtml() . '</body></htm>';
 });

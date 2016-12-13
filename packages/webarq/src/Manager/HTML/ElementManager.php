@@ -14,45 +14,174 @@ namespace Webarq\Manager\HTML;
 use Html;
 use Illuminate\Contracts\Support\Htmlable;
 
+
 class ElementManager implements Htmlable
 {
     /**
+     * HTML with content
+     *
      * @var string
      */
     protected $html = '';
 
-    protected $node;
-
-    protected $htmlContainers = ['h1', 'h2', 'h3', 'h4', 'h5', 'div', 'p', 'span'];
+    /**
+     * HTML tag|elements without content
+     *
+     * @var
+     */
+    protected $container;
 
     /**
-     * Hint.
-     * - Use dot notation for simple nested tag
-     * - Starts with : (colon) to use a view file
+     * HTML element attributes
      *
-     * @param $html
-     * @param string $container Html tag name or full html tag (with any attributes)
-     * @param array $attr
+     * @var array
      */
-    public function __construct($html, $container = 'div', array $attr = [])
+    protected $attr = [];
+
+    /**
+     * Empty HTML tag
+     *
+     * @var array
+     */
+    protected $void = ['br', 'hr', 'img', 'input', 'button'];
+
+    /**
+     * Wrap your html
+     *
+     * @param $content
+     * @param string $container HTML tag|elements without content
+     * @param array $attr Html attributes|view variable if $container is a view file
+     */
+    public function __construct($content, $container = 'div', array $attr = [])
     {
-        $this->wrapHtml($html, $container, $attr);
+        $this->setHtml($content);
+        $this->setContainer($container);
+        $this->setAttr($attr);
     }
 
-    protected function wrapHtml($html, $container, array $attr)
+    /**
+     * Set element content
+     *
+     * @param $html
+     * @return $this
+     */
+    public function setHtml($html)
     {
-        if (starts_with($container, ':')) {
-            $this->html = view(substr($container, 1), ['html' => $html] + $attr)->render();
-        } elseif(false !== ($midPoint = strpos($container, '></'))) {
-            $midPoint++;
-            $this->html = substr($container, 0, $midPoint) . $html . substr($container, $midPoint);
-        } else {
-            $this->html = '<' . $container . Html::attributes($attr) . '>' . $html . '</' . $container . '>';
+        $this->html = $html;
+
+        return $this;
+    }
+
+    public function setAttr($attr = [])
+    {
+        if (!is_array($attr)) {
+            $attr = ['id' => $attr];
         }
+        $this->attr = $attr;
+
+        return $this;
+    }
+
+    /**
+     * Get element container
+     *
+     * @return mixed
+     */
+    public function getContainer()
+    {
+        return $this->container;
+    }
+
+    public function setContainer($container)
+    {
+        $this->container = $container;
+
+        return $this;
     }
 
     public function toHtml()
     {
+        $this->compile($this->html, $this->container, $this->attr);
+
         return $this->html;
+    }
+
+    /**
+     * @param string $html
+     * @param string $container
+     * @param array $attr
+     * @throws \Exception
+     * @throws \Throwable
+     */
+    protected function compile($html, $container, array $attr)
+    {
+        if (starts_with($container, ':')) {
+            $this->html = view(substr($container, 1), ['html' => $html] + $attr)->render();
+        } elseif (str_contains($container, ':html')) {
+            $this->html = str_replace(':html', $html, $container);
+        } elseif (false !== ($midPoint = strpos($container, '></'))) {
+            $midPoint++;
+            $this->html = substr($container, 0, $midPoint) . $html . substr($container, $midPoint);
+        } else {
+            $this->html = $this->buildContent($html, $container, $attr);
+        }
+    }
+
+    protected function buildContent($html, $tag, $attr = [])
+    {
+// Splits tag
+        $tags = explode('>', $tag);
+// Split class attributes
+        $this->checkForBasicAttributes(array_shift($tags), $tag, $attr);
+        if (!in_array($tag, $this->void)) {
+// Open tag
+            $o = '<' . $tag . Html::attributes($attr) . '>';
+// Close tag
+            $c = '</' . $tag . '>';
+        } else {
+            $o = '<' . $tag . '/>';
+            $c = '';
+        }
+
+        if ([] !== $tags) {
+            foreach ($tags as $str) {
+                $attr = [];
+                $this->checkForBasicAttributes($str, $tag, $attr);
+                if (!in_array($tag, $this->void)) {
+                    $o .= '<' . $tag . Html::attributes($attr) . '>';
+                    $c = '</' . $tag . '>' . $c;
+                } else {
+                    $o .= '<' . $tag . '/>';
+                }
+            }
+        }
+
+        return $o . $html . $c;
+    }
+
+    protected function checkForBasicAttributes($string, &$tag, &$attr = [])
+    {
+        $string = trim($string);
+// Separate class from tag
+        $class = strpos($string, '.');
+        $id = strpos($string, '#');
+        if (false !== $class) {
+            if (false !== $id) {
+// Class attribute found before id
+                if ($id > $class) {
+                    list($tag, $string) = explode('.', $string, 2);
+                    list($attr['class'], $attr['id']) = explode('#', $string, 2);
+                } else {
+                    list($tag, $string) = explode('#', $string, 2);
+                    list($attr['id'], $attr['class']) = explode('.', $string, 2);
+                }
+            } else {
+                list($tag, $attr['class']) = explode('.', $string, 2);
+            }
+        } elseif (false !== $id) {
+            list($tag, $attr['id']) = explode('#', $string, 2);
+        } else {
+            $tag = $string;
+        }
     }
 }
