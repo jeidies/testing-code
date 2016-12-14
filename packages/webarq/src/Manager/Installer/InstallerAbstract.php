@@ -96,9 +96,11 @@ abstract class InstallerAbstract
     {
         if ([] !== $this->tables) {
             foreach ($this->tables as $table) {
+                array_set($this->payload, 'installed.' . $table->getName() . '.create', $table->getSerialize());
 // Install table (and related object)
                 $this->installation($table);
             }
+
             $this->setPayload();
         }
         return 'done';
@@ -110,8 +112,28 @@ abstract class InstallerAbstract
     {
 // Update payload data
         $f = fopen('config-module/payload.php', 'w+');
-        fwrite($f, '<?php return ' . var_export($this->payload, true) . ';');
+        fwrite($f, '<?php return '
+                . PHP_EOL
+                . '       '
+                . $this->var_export_array($this->payload, '       ') . ';');
         fclose($f);
+    }
+
+    protected function var_export_array($var, $indent = "")
+    {
+        switch (gettype($var)) {
+            case "array":
+                $indexed = array_keys($var) === range(0, count($var) - 1);
+                $r = [];
+                foreach ($var as $key => $value) {
+                    $r[] = "$indent    "
+                            . ($indexed ? "" : $this->var_export_array($key) . " => ")
+                            . $this->var_export_array($value, "$indent    ");
+                }
+                return "[\n" . implode(",\n", $r) . "\n" . $indent . "]";
+            default:
+                return var_export($var, TRUE);
+        }
     }
 
     public function getResponse()

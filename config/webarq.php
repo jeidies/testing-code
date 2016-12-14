@@ -192,6 +192,7 @@ return [
                 'tinySequence' => [
                         'type' => 'tinyint',
                         'length' => 4,
+                        'unsigned' => true,
                         'name' => 'sequence',
                         'notnull' => true,
                         'form' => [
@@ -203,6 +204,7 @@ return [
                 'smallSequence' => [
                         'type' => 'smallint',
                         'length' => 6,
+                        'unsigned' => true,
                         'name' => 'sequence',
                         'notnull' => true,
                         'form' => [
@@ -214,6 +216,7 @@ return [
                 'sequence' => [
                         'type' => 'int',
                         'length' => 11,
+                        'unsigned' => true,
                         'name' => 'sequence',
                         'notnull' => true,
                         'form' => [
@@ -225,6 +228,7 @@ return [
                 'bigSequence' => [
                         'type' => 'bigint',
                         'length' => 20,
+                        'unsigned' => true,
                         'name' => 'sequence',
                         'notnull' => true,
                         'form' => [

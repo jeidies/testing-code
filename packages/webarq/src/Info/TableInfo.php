@@ -123,6 +123,9 @@ class TableInfo
         if ($column->isPrimary()) {
             $this->primaryColumn = $column;
         }
+        if (true === $column->getExtra('multilingual')) {
+            $this->multilingual = true;
+        }
 
         $this->columns[$column->getName()] = $column;
     }
@@ -205,6 +208,11 @@ class TableInfo
     public function getSerialize()
     {
         return $this->serialize;
+    }
+
+    public function getReferenceKeyName()
+    {
+        return str_singular($this->name) . '_id';
     }
 }
 

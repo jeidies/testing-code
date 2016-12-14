@@ -24,11 +24,11 @@ class CreateManager extends InstallerAbstract
             $code .= $this->migrationDown($table);
             $code .= $this->closeClass();
 // Copy migration file
-//            $this->setMigrationFile($strClass, $code);
+            $this->setMigrationFile($strClass, $code);
 // Create model or not
             $this->createModelOrNot($table);
 // Set payload
-            array_set($this->payload, $table->getName() . '.create', $table->getSerialize());
+            array_set($this->payload, 'installed.' . $table->getName() . '.create', $table->getSerialize());
         }
     }
 
@@ -50,14 +50,47 @@ class CreateManager extends InstallerAbstract
         $str .= '    {' . PHP_EOL;
         $str .= '        Schema::create(\'' . $table->getName() . '\', function(Blueprint $table)' . PHP_EOL;
         $str .= '        {' . PHP_EOL;
-
         foreach ($table->getColumns() as $column) {
             $str .= Wa::manager('installer.definition', $column)->getDefinition();
         }
-
         $str .= '        });' . PHP_EOL;
-        return $str. '    }' . PHP_EOL;
+
+// Create translation table
+        $str .= $this->translationTable($table);
+
+        $str .= '    }' . PHP_EOL;
+
+        return $str;
     }
+
+    private function translationTable(TableInfo $table)
+    {
+        if ($table->isMultiLingual()) {
+            $str = PHP_EOL;
+            $str .= '        Schema::create(\'' . $table->getName() . '_i18n\', function(Blueprint $table)' . PHP_EOL;
+            $str .= '        {' . PHP_EOL;
+            $str .= Wa::manager('installer.definition', Wa::load('info.column',['master' => 'bigId']))
+                    ->getDefinition();
+            foreach ($table->getColumns() as $column) {
+                if ($column->isPrimary()) {
+                    $attrColumn = [
+                            'name' => $table->getReferenceKeyName(),
+                            'type' => $column->getType(),
+                            'unsigned' => $column->getExtra('unsigned'),
+                            'notnull' => true];
+                    $str .= Wa::manager('installer.definition', Wa::load('info.column',$attrColumn))
+                            ->getDefinition();
+                } elseif ($column->getExtra('multilingual')) {
+                    $str .= Wa::manager('installer.definition', $column)->getDefinition();
+                }
+            }
+            $str .= Wa::manager('installer.definition', Wa::load('info.column',['master' => 'createOn']))
+                    ->getDefinition();
+
+            return $str . '        });' . PHP_EOL;
+        }
+    }
+
 
     /**
      * Migration  down method
@@ -75,25 +108,35 @@ class CreateManager extends InstallerAbstract
         $str .= '    public function down()' . PHP_EOL;
         $str .= '    {' . PHP_EOL;
         $str .= '        Schema::drop(\'' . $table->getName() . '\');' . PHP_EOL;
-        return $str . '    }' . PHP_EOL;
+// Drop translation table
+        if ($table->isMultiLingual()) {
+            $str .= PHP_EOL . '        Schema::drop(\'' . $table->getName() . '_i18n\');' . PHP_EOL;
+        }
+        $str .= '    }' . PHP_EOL;
+
+        return $str;
     }
 
 
     private function createModelOrNot(TableInfo $table)
     {
-        $class = ucfirst(camel_case(str_singular($table->getName()))) . 'Model';
-        if (!file_exists(__DIR__ . '/../../model/' . $class . '.php')
-                && (null === ($config = $table->getExtra('create-model')) || true === $config)) {
-            $str = '<?php' . PHP_EOL . PHP_EOL;
-            $str .= 'namespace Webarq\Model;' . PHP_EOL . PHP_EOL . PHP_EOL;
-            $str .= 'class ' . $class . ' extends AbstractListingModel' . PHP_EOL;
-            $str .= '{' . PHP_EOL;
-            $str .= '    protected $table = \'' . $table->getName() . '\';' . PHP_EOL;
-            $str .= '}';
+        if (true == ($class = $table->getExtra('model', true))) {
+// Class Name
+            $class = studly_case(str_singular(is_string($class) ? $class : $table->getName())) . 'Model';
+            if (!file_exists(__DIR__ . '/../../model/' . $class . '.php')
+                    && (null === ($config = $table->getExtra('create-model')) || true === $config)
+            ) {
+                $str = '<?php' . PHP_EOL . PHP_EOL;
+                $str .= 'namespace Webarq\Model;' . PHP_EOL . PHP_EOL . PHP_EOL;
+                $str .= 'class ' . $class . ' extends AbstractListingModel' . PHP_EOL;
+                $str .= '{' . PHP_EOL;
+                $str .= '    protected $table = \'' . $table->getName() . '\';' . PHP_EOL;
+                $str .= '}';
 
-            $f = fopen(__DIR__ . '/../../model/' . $class . '.php', 'w+');
-            fwrite($f, $str);
-            fclose($f);
+                $f = fopen(__DIR__ . '/../../model/' . $class . '.php', 'w+');
+                fwrite($f, $str);
+                fclose($f);
+            }
         }
     }
 }
