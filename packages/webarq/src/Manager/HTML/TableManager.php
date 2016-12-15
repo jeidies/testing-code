@@ -12,6 +12,7 @@ namespace Webarq\Manager\HTML;
 use Illuminate\Contracts\Support\Htmlable;
 use Wa;
 use Webarq\Manager\HTML\Table\BodyManager;
+use Webarq\Manager\HTML\Table\RowManager;
 
 class TableManager implements Htmlable
 {
@@ -68,6 +69,8 @@ class TableManager implements Htmlable
     public function addRows(array $args = [])
     {
         $type = $args[0];
+// Row type
+        RowManager::$isHead = 'head' === $type;
         $container = array_get($args, 1);
         $attributes = array_get($args, 2, []);
         if (is_callable($container) && !is_string($container)) {

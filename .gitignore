@@ -1,0 +1,9 @@
+# Ignore everything while on development
+/*
+!.gitignore
+!packages
+!config-module
+!config-module/*/
+!config/webarq.php
+!resources/views/webarq
+!resources/views/webarq/*/

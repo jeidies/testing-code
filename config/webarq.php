@@ -35,16 +35,10 @@ return [
                 'environment' => 'local',
                 'secureUrl' => false,
                 'queryLog' => true,
-                'assetAttr' => [
-                        'css' => ['type' => 'text/css', 'media' => ['all']],
-                        'js' => ['type' => 'text/javascript'],
-                        'img' => ['alt' => 'Image alternative text']
-                ],
-                'formInput' => [
-                        'type' => 'text',
-                        'value' => null
-                ],
-                'themes' => 'black-mamba',
+                'panel-url-prefix' => 'admin-cp',
+                'default-controller' => 'StaticController',
+                'action-prefix' => 'action',
+                'default-action' => 'actionGetIndex'
         ],
 
 //Themes
@@ -62,64 +56,64 @@ return [
 //Active module
         'modules' => ['system', 'client'],
 
-        /**
-        'smallId' => [
-        'name' => 'id',
-        'type' => 'int',
-        'primary' => true,
-        'increment' => true,
-        'unsigned' => true,
-        // Will add form required attributes automatically
-        'notnull' => true,
-        'form' => [
-        // Programmed form attributes
-        // Input element type
-        'type' => 'text|radio|checkbox|textarea|select|hidden|button|submit',
-        // If input type is select, it should be have an array of options | a callback which return an array to
-        'options' => [
-        // Tell the manager to select some label,value from table (if any: where condition) and return it as an array
-        'table' => 'table-name',
-        'label' => 'label-column-name',
-        'value' => 'value-column-name',
-        'where' => []
-        ],
-        // If input type is select, with this will allow multiple option to select
-        'multiple' => true,
-        // Output html, it could be anything, a view factory, a callback method, a string ...
-        'html' => '',
-        // Input label
-        'label' => 'Some string',
-        // Passing an input value
-        'value' => 'Some string',
-        // HTML input attributes
-        // Input parent container
-        'container' => '<div></div>',
-        'class' => 'some-class',
-        'id' => 'some-id',
-        'style' => 'some-style',
-        // Will transform value into some slug format
-        'permalink' => true,
-        // Check if the given value is a valid url address
-        'url' => true,
-        // Check if the given value is a valid email address
-        'email' => true,
-        // Force an input to fill in
-        'required' => true,
-        // Check if the given value, already exists in a table
-        'unique' => true,
-        // Input rules, used when need to filtering input before render
-        'rules' => [
-        'guarded' => true,
-        'permission' => 'is_system',
-        ],
-        'rules-second-way' => function ($admin, $item) {
-
-        },
-        // Inform rendering handler to print this as an input information
-        'info' => 'Some information'
-        ]
-        ]
-         */
+    /**
+     * 'smallId' => [
+     * 'name' => 'id',
+     * 'type' => 'int',
+     * 'primary' => true,
+     * 'increment' => true,
+     * 'unsigned' => true,
+     * // Will add form required attributes automatically
+     * 'notnull' => true,
+     * 'form' => [
+     * // Programmed form attributes
+     * // Input element type
+     * 'type' => 'text|radio|checkbox|textarea|select|hidden|button|submit',
+     * // If input type is select, it should be have an array of options | a callback which return an array to
+     * 'options' => [
+     * // Tell the manager to select some label,value from table (if any: where condition) and return it as an array
+     * 'table' => 'table-name',
+     * 'label' => 'label-column-name',
+     * 'value' => 'value-column-name',
+     * 'where' => []
+     * ],
+     * // If input type is select, with this will allow multiple option to select
+     * 'multiple' => true,
+     * // Output html, it could be anything, a view factory, a callback method, a string ...
+     * 'html' => '',
+     * // Input label
+     * 'label' => 'Some string',
+     * // Passing an input value
+     * 'value' => 'Some string',
+     * // HTML input attributes
+     * // Input parent container
+     * 'container' => '<div></div>',
+     * 'class' => 'some-class',
+     * 'id' => 'some-id',
+     * 'style' => 'some-style',
+     * // Will transform value into some slug format
+     * 'permalink' => true,
+     * // Check if the given value is a valid url address
+     * 'url' => true,
+     * // Check if the given value is a valid email address
+     * 'email' => true,
+     * // Force an input to fill in
+     * 'required' => true,
+     * // Check if the given value, already exists in a table
+     * 'unique' => true,
+     * // Input rules, used when need to filtering input before render
+     * 'rules' => [
+     * 'guarded' => true,
+     * 'permission' => 'is_system',
+     * ],
+     * 'rules-second-way' => function ($admin, $item) {
+     *
+     * },
+     * // Inform rendering handler to print this as an input information
+     * 'info' => 'Some information'
+     * ]
+     * ]
+     */
         'data-type-master' => [
                 'tinyId' => [
                         'type' => 'tinyint',

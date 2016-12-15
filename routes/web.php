@@ -11,7 +11,10 @@
 |
 */
 
+
 Route::get('/', function () {
+    $m = Wa::module('system');
+    dd($m);
     return view('welcome');
 });
 
@@ -19,7 +22,9 @@ Route::get('/form', function () {
     return view('webarq.samples.form');
 });
 
-
 Route::get('/list', function () {
     return view('webarq.samples.table');
 });
+
+// !!!"Webarq" routing should be load in the end
+include 'webarq.php';

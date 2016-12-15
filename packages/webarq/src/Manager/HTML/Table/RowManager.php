@@ -14,14 +14,20 @@ use Wa;
 
 class RowManager implements Htmlable
 {
+    public static $isHead = false;
+
     protected $cells = [];
 
-    public function addCell($value, $container = 'td', $attributes = [])
+    public function addCell($value, $container = null, $attributes = [])
     {
         if (is_array($container)) {
             $attributes = $container;
-            $container = 'td';
+            $container = null;
         }
+        if (!isset($container)) {
+            $container = self::$isHead ? 'th' : 'td';
+        }
+
 
         $this->cells[] = Wa::html('element', $value, $container, $attributes);
 

@@ -48,119 +48,96 @@
  *
  */
 
-if (Wa::origin('system.queryLog')) DB::enableQueryLog();
-
-$lengthOfParam = 4;
-$url = '{directory?}/{module?}/{controller?}/{action?}';
-if ($lengthOfParam > 0)
-{
-    for ($i = 1; $i <= $lengthOfParam; $i++)
-        $url .= '/{param' . $i . '?}';
+if (config('webarq.system.queryLog')) {
+    DB::enableQueryLog();
 }
-
-Route::match(['get', 'post'],$url,
-        function($directory = '',$module='system', $controller='static', $action = 'index') use($lengthOfParam)
-        {
-            if ('admin-cp' !== $directory)
-            {
+// Starts with allowed url format
+$urlFormat = '{directory?}/{module?}/{controller?}/{action?}';
+// Allowing parameter
+$paramLength = 4;
+if ($paramLength > 0) {
+    for ($i = 1; $i <= $paramLength; $i++) {
+        $urlFormat .= '/{param' . $i . '?}';
+    }
+}
+Route::match(['get', 'post'], $urlFormat,
+        function ($directory = 'site', $module = 'system', $controller = 'static', $action = 'index')
+        use ($paramLength, $urlFormat) {
+// Since we do not need to write down directory name in url while accessing site page,
+// we need to re-assign url section value
+            if (config('webarq.system.panel-url-prefix') !== $directory) {
                 $action = $controller;
                 $controller = $module;
                 $module = $directory;
                 $directory = 'Site';
-                $openingParam = 4;
-                $lengthOfParam++;
-            }
-            else
-            {
-                $openingParam = 5;
+                $paramSection = 4;
+                $paramLength++;
+            } else {
+                $paramSection = 5;
                 $directory = 'Panel';
             }
-
+// Get params value from it is request segment
             $params = [];
-
-            if ($lengthOfParam > 0)
-            {
+            if ($paramLength > 0) {
                 $i = 1;
-                while($i <= $lengthOfParam)
-                {
-                    $params[$i] = \Request::segment($openingParam+$i);
+                while ($i <= $paramLength) {
+                    $params[$i] = \Request::segment($paramSection + $i);
                     $i++;
                 }
             }
 
-            /**
-             * @todo Determine whether these view share item, could be done in controller i/of routing
-             */
-            View::share('routeModule',$module);
-            View::share('routeController',$controller);
-            View::share('routeAction',$action);
-            View::share('routeParams',$params);
-
-            //Controller File location
-            $relative = '..'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'Http'.DIRECTORY_SEPARATOR.'Controllers'
-                    .DIRECTORY_SEPARATOR.$directory.DIRECTORY_SEPARATOR;
-            $absolute = 'App'.DIRECTORY_SEPARATOR.'Http'.DIRECTORY_SEPARATOR.'Controllers'.DIRECTORY_SEPARATOR.$directory
-                    .DIRECTORY_SEPARATOR;
-
-            $moduleDir = preg_replace('/[^0-9a-zA-Z ]/',' ',strtolower($module));
-            $moduleDir = \Illuminate\Support\Str::camel($moduleDir);
-            $moduleDir = ucfirst($moduleDir);
-
-            $camelController = preg_replace('/[^0-9a-zA-Z ]/',' ',strtolower($controller));
-            $camelController = \Illuminate\Support\Str::camel($camelController);
-            $camelController = ucfirst($camelController);
-
-            //Default action
-            $classAction = 'actionIndex';
-            $camelAction = preg_replace('/[^0-9a-zA-Z ]/',' ',strtolower($action));
-            $camelAction = \Illuminate\Support\Str::camel($camelAction);
-            $camelAction = ucfirst($camelAction);
-
-            if ( is_dir($relative . $moduleDir ) )
-            {
-                if ( is_file($relative . $moduleDir . DIRECTORY_SEPARATOR . $camelController . 'Controller.php') )
-                {
-                    $classObject = app()->make( $absolute . $moduleDir . DIRECTORY_SEPARATOR . $camelController . 'Controller' );
-                    if ( method_exists($classObject,'action' . $camelAction))
-                    {
-                        $classAction = 'action' . $camelAction;
+// Server directory separator
+            $sep = DIRECTORY_SEPARATOR;
+// Controller action prefix
+            $actPrefix = config('webarq.system.action-prefix') . ucfirst(strtolower(Request::method()));
+// File controller should be under App/Http/Controllers/$directory
+            $absolute = 'App' . $sep . 'Http' . $sep . 'Controllers' . $sep . $directory . $sep;
+            $relative = '..' . $sep . 'app' . $sep . 'Http' . $sep . 'Controllers' . $sep . $directory . $sep;
+// Set convention name
+            $module = studly_case($module);
+            $controller = studly_case($controller);
+            $action = studly_case($action);
+// Yes, module should be directory
+            if (is_dir($relative . $module)) {
+                if (is_file($relative . $module . $sep . $controller . 'Controller.php')) {
+                    $class = $absolute . $module . $sep . $controller . 'Controller';
+                    if (method_exists($class, $actPrefix . $action)) {
+                        $method = $actPrefix . $action;
                     }
                 }
             }
-
-            if ( !isset($classObject) )
-            {
-                if ( is_file($relative . $moduleDir .  'Controller.php') )
-                {
-                    $classObject = app()->make( $absolute . $moduleDir . 'Controller' );
-                    if ( method_exists($classObject,'action' . $camelController) )
-                    {
-                        $classAction = 'action' . $camelController;
+// But, in case it is not, module will act as controller, and so on
+            if (!isset($class)) {
+                if (is_file($relative . $module . 'Controller.php')) {
+                    $class = $absolute . $module . 'Controller';
+                    if (method_exists($class, $actPrefix . $controller)) {
+                        $method = $actPrefix . $controller;
                     }
                 }
             }
-
-            if ( !isset($classObject) )
-            {
-                $classObject = app()->make( 'App\Http\Controllers\\'.$directory.'\StaticController' );
-                if ( method_exists($classObject,'action' . $moduleDir) )
-                {
-                    $classAction = 'action' . $moduleDir;
+// Ups, controller still undetected, use default controller (if any)
+            if (!isset($class) && null !== ($class = config('webarq.system.default-controller'))) {
+                $class = $absolute . $class;
+                if (method_exists($class, $actPrefix . $module)) {
+                    $method = $actPrefix . $module;
                 }
             }
-
-            if ( isset($classObject) )
-            {
-                //Before
-                if ( method_exists($classObject,'before')) $classObject->before();
-                //Action
-                $callAction = $classObject->callAction($classAction,$params);
-                if ( !is_null($callAction) )
-                    return $callAction;
-                elseif ( method_exists($classObject,'after'))
-                    return $classObject->after();
-                else
-                    return '<html><head><title>Routing blank page</title></head></html>';
+// Yay, found a class
+            if (isset($class)) {
+                $class = resolve($class);
+// Execute class object "before" method if any
+                if (method_exists($class, 'before')) {
+                    $class->before($params);
+                }
+// Call method (do not forget about method injection)
+                $call = App::call([$class, isset($method) ? $method : config('webarq.system.default-action')]);
+                if (!is_null($call)) {
+                    return $call;
+                } elseif (method_exists($class, 'after')) {
+                    return $class->after();
+                } else {
+                    return view('webarq.errors.404');
+                }
             }
         }
 );
