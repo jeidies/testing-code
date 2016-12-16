@@ -11,10 +11,7 @@
 |
 */
 
-
 Route::get('/', function () {
-    $m = Wa::module('system');
-    dd($m);
     return view('welcome');
 });
 

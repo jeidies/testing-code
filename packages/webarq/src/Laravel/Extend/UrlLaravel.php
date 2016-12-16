@@ -10,6 +10,7 @@ namespace Webarq\Laravel\Extend;
 
 
 use URL;
+use Wa;
 
 class UrlLaravel
 {

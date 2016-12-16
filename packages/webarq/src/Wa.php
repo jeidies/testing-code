@@ -174,7 +174,6 @@ class Wa
         } else {
             $class = $this->normalizeClass($class);
         }
-
         if ($this->getGhost() === array_get($args, 1)) {
             $args = $args[0];
         }

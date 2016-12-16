@@ -16,7 +16,8 @@ class CreateManager extends InstallerAbstract
 {
     protected function installation(TableInfo $table)
     {
-        if (null === array_get($this->payload, $table->getName() . '.create') && [] !== $table->getColumns()) {
+        if (null === array_get($this->payload, 'installed.' . $table->getName() . '.create')
+                && [] !== $table->getColumns()) {
             $code = $this->openClass($strClass = 'create_' . $table->getName() . '_class');
             $code .= $this->migrationUp($table);
 // Separate method with new line
@@ -50,14 +51,23 @@ class CreateManager extends InstallerAbstract
         $str .= '    {' . PHP_EOL;
         $str .= '        Schema::create(\'' . $table->getName() . '\', function(Blueprint $table)' . PHP_EOL;
         $str .= '        {' . PHP_EOL;
+
+        $uniqueItems = $uniquesItems = [];
+
         foreach ($table->getColumns() as $column) {
             $str .= Wa::manager('installer.definition', $column)->getDefinition();
+            if (true === $column->isUnique()) {
+                $uniqueItems[] = $column->getName();
+            }
+            if (true === $column->isUniques()) {
+                $uniquesItems[] = $column->getName();
+            }
         }
+        $str .= Wa::manager('installer.UniqueDefinition!', $column)->getDefinitionUnique($uniqueItems);
+        $str .= Wa::manager('installer.UniqueDefinition!', $column)->getDefinitionUniques($uniquesItems);
         $str .= '        });' . PHP_EOL;
-
 // Create translation table
         $str .= $this->translationTable($table);
-
         $str .= '    }' . PHP_EOL;
 
         return $str;

@@ -9,7 +9,7 @@
 
 return [
         'tables' => [
-                'configurations', 'admins', 'admin_roles', 'roles', 'menus'
+                'permissions', 'configurations', 'admins', 'admin_roles', 'roles', 'menus'
         ],
         'panel-menus' => [
                 'roles',

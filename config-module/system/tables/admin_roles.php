@@ -8,8 +8,8 @@
 
 return [
         ['master' => 'id'],
-        ['master' => 'int', 'name' => 'admin_id', 'reference' => 'admins.id'],
-        ['master' => 'int', 'name' => 'role_id'],
+        ['master' => 'int', 'name' => 'admin_id', 'reference' => 'admins.id', 'uniques' => true],
+        ['master' => 'int', 'name' => 'role_id', 'uniques' => true],
         'log' => [
                 'create' => ['assigned', 'admins.username', 'roles.title'],
                 'update' => ['unsigned', 'admins.username', 'roles.title']

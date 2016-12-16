@@ -59,8 +59,13 @@ class DefinitionManager
     public function __construct(ColumnInfo $column)
     {
         $this->column = $column;
+    }
 
+    public function getDefinition()
+    {
         $this->compile();
+
+        return $this->definition . PHP_EOL;
     }
 
     private function compile()
@@ -133,11 +138,6 @@ class DefinitionManager
         if (isset($comment)) {
             $this->definition .= '->comment(\'' . $comment . '\')';
         }
-    }
-
-    public function getDefinition()
-    {
-        return $this->definition . PHP_EOL;
     }
 
 }

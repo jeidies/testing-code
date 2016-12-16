@@ -38,7 +38,7 @@ abstract class InstallerAbstract
 
     public function __construct($module = null)
     {
-        $this->payload = Wa::config('payload.installed', []);
+        $this->payload = Wa::config('payload', []);
 
         if (isset($module)) {
             $module = explode(str_contains($module, ']') ? ']' : ',', $module);
@@ -96,7 +96,6 @@ abstract class InstallerAbstract
     {
         if ([] !== $this->tables) {
             foreach ($this->tables as $table) {
-                array_set($this->payload, 'installed.' . $table->getName() . '.create', $table->getSerialize());
 // Install table (and related object)
                 $this->installation($table);
             }

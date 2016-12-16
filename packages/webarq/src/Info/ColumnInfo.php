@@ -75,6 +75,20 @@ class ColumnInfo
      */
     protected $serialize;
 
+    /**
+     * Unique column
+     *
+     * @var bool
+     */
+    protected $unique = false;
+
+    /**
+     * Uniques column
+     *
+     * @var bool
+     */
+    protected $uniques = false;
+
     public function __construct(array $options)
     {
         $this->default = Wa::getGhost();
@@ -170,6 +184,30 @@ class ColumnInfo
         return false === $this->notnull;
     }
 
+    public function getSerialize()
+    {
+        return $this->serialize;
+    }
+
+    public function isUnique()
+    {
+        return $this->unique;
+    }
+
+    public function isUniques()
+    {
+        return $this->uniques;
+    }
+
+    public function __get($key)
+    {
+        if (method_exists($this, ($method = Str::camel('get ' . $key)))) {
+            return $this->{$method}();
+        } else {
+            return $this->getExtra($key);
+        }
+    }
+
     /**
      * @param $key
      * @param null|mixed $default
@@ -178,22 +216,5 @@ class ColumnInfo
     public function getExtra($key, $default = null)
     {
         return array_get($this->extra, $key, $default);
-    }
-
-    public function getSerialize()
-    {
-        return $this->serialize;
-    }
-
-    public function __get($key)
-    {
-        if (method_exists($this,($method = Str::camel('get ' . $key))))
-        {
-            return $this->{$method}();
-        }
-        else
-        {
-            return $this->getExtra($key);
-        }
     }
 }

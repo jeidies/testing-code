@@ -48,7 +48,7 @@
  *
  */
 
-if (config('webarq.system.queryLog')) {
+if (Wa::config('system.configs.queryLog')) {
     DB::enableQueryLog();
 }
 // Starts with allowed url format
