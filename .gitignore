@@ -7,3 +7,5 @@
 !config/webarq.php
 !resources/views/webarq
 !resources/views/webarq/*/
+!app/Http/Controllers
+!app/Http/Controllers/*/

@@ -52,12 +52,12 @@ class Wa
                     }
                 }
             }
-        } elseif (!Wa::module($module)->hasTable($name)) {
+        }
+
+        if (!isset($module) || !Wa::module($module)->hasTable($name)) {
             return null;
         }
-        if (!isset($module)) {
-            return null;
-        }
+
         return TableInfo::getInstance($name, $module, $columns);
     }
 

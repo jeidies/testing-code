@@ -6,7 +6,7 @@
  * Time: 6:39 PM
  */
 
-namespace Webarq\Manager\DAO;
+namespace Webarq\Manager\Query;
 
 
 class ValidatorManager

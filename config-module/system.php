@@ -11,9 +11,9 @@ return [
         'tables' => [
                 'permissions', 'configurations', 'admins', 'admin_roles', 'roles', 'menus'
         ],
-        'panel-menus' => [
+        'panels' => [
                 'roles',
-                'some-group' => [
+                'admins' => [
                         'listing' => [
 // When not set, will use system determination
                                 'permalink' => 'some-link',
@@ -34,8 +34,8 @@ return [
 // Transaction form if any
                                         'form' => [
 // Following by input key => attributes
-// Input key must following "moduleName.tableName.columnName" convention name
-                                                'some-module.some-table.some-column' => [
+// Input key should be following "moduleName.tableName.columnName" format name
+                                                'system.admins.username' => [
                                                         'type' => 'text',
                                                         'length' => '100',
 // Input rules:
@@ -43,7 +43,11 @@ return [
                                                         'rules' => [
 
                                                         ]
-                                                ]
+                                                ],
+                                                'system.admins.password' => [
+
+                                                ],
+                                                'system.admin_roles.role_id'
                                         ]
                                 ],
                                 'edit',

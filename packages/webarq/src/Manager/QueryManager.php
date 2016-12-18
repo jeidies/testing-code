@@ -10,14 +10,14 @@ namespace Webarq\Manager;
 
 
 /**
- * Wa::crud('insert', $post, function($insert){
- *      $insert->updateData('someKey', 'someValue');
+ * Wa::crud('insert', $post, function($post){
+ *      $post->updateData('someKey', 'someValue');
  * })
  *
  * Class CRUDManager
  * @package Webarq\Manager
  */
-class DAOManager
+class QueryManager
 {
     /**
      * Row data

@@ -35,7 +35,7 @@ class ModuleInfo
      *
      * @var array
      */
-    protected $panel = [];
+    protected $panels = [];
 
     /**
      * Module registered tables
@@ -63,7 +63,7 @@ class ModuleInfo
 
             $this->setupTables(array_get($options, 'tables', []));
 
-            $this->setupPanels(array_get($options, 'panel-menus', []));
+            $this->setupPanels(array_get($options, 'panels', []));
         }
     }
 
@@ -81,13 +81,17 @@ class ModuleInfo
     }
 
     /**
-     * @param array $menus
+     * @param array $options
      */
-    private function setupPanels(array $menus)
+    private function setupPanels(array $options)
     {
-        if ([] !== $menus) {
-            foreach ($menus as $name => $config) {
-                $this->panel[$name] = $config;
+        if ([] !== $options) {
+            foreach ($options as $key => $value) {
+                if (is_numeric($key)) {
+                    $key = $value;
+                    $value = [];
+                }
+                $this->panels[$key] = Wa::load('info.panel', $value);
             }
         }
     }
@@ -131,5 +135,15 @@ class ModuleInfo
     public function hasTable($tableName)
     {
         return isset($this->tables[$tableName]);
+    }
+
+    /**
+     * @param mixed $key
+     * @param mixed $default
+     * @return mixed|object Webarq\Info\PanelInfo
+     */
+    public function getPanel($key, $default = null)
+    {
+        return array_get($this->panels, $key, $default);
     }
 }

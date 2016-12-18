@@ -12,6 +12,7 @@
 */
 
 Route::get('/', function () {
+//    Auth::attempt(['username' => 'superadmin']);
     return view('welcome');
 });
 

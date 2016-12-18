@@ -70,20 +70,11 @@ Route::match(['get', 'post'], $urlFormat,
                 $controller = $module;
                 $module = $directory;
                 $directory = 'Site';
-                $paramSection = 4;
+                $indexParam = 4;
                 $paramLength++;
             } else {
-                $paramSection = 5;
+                $indexParam = 5;
                 $directory = 'Panel';
-            }
-// Get params value from it is request segment
-            $params = [];
-            if ($paramLength > 0) {
-                $i = 1;
-                while ($i <= $paramLength) {
-                    $params[$i] = \Request::segment($paramSection + $i);
-                    $i++;
-                }
             }
 
 // Server directory separator
@@ -97,7 +88,7 @@ Route::match(['get', 'post'], $urlFormat,
             $module = studly_case($module);
             $controller = studly_case($controller);
             $action = studly_case($action);
-// Yes, module should be directory
+// Yes, normally module is a directory
             if (is_dir($relative . $module)) {
                 if (is_file($relative . $module . $sep . $controller . 'Controller.php')) {
                     $class = $absolute . $module . $sep . $controller . 'Controller';
@@ -105,39 +96,62 @@ Route::match(['get', 'post'], $urlFormat,
                         $method = $actPrefix . $action;
                     }
                 }
-            }
+            } elseif (is_file($relative . $module . $sep . 'Controller.php')) {
 // But, in case it is not, module will act as controller, and so on
-            if (!isset($class)) {
-                if (is_file($relative . $module . 'Controller.php')) {
-                    $class = $absolute . $module . 'Controller';
-                    if (method_exists($class, $actPrefix . $controller)) {
-                        $method = $actPrefix . $controller;
-                    }
+                $class = $absolute . $module . 'Controller';
+                $indexParam--;
+                if (method_exists($class, $actPrefix . $controller)) {
+                    $method = $actPrefix . $controller;
                 }
-            }
+            } elseif (null !== ($class = config('webarq.system.default-controller'))) {
 // Ups, controller still undetected, use default controller (if any)
-            if (!isset($class) && null !== ($class = config('webarq.system.default-controller'))) {
-                $class = $absolute . $class;
-                if (method_exists($class, $actPrefix . $module)) {
-                    $method = $actPrefix . $module;
+                if (is_file($relative . $class . '.php')) {
+                    $class = $absolute . $class;
+                    $indexParam -= 2;
+                    if (method_exists($class, $actPrefix . $module)) {
+                        $method = $actPrefix . $module;
+                    }
+                } else {
+                    $class = null;
                 }
             }
 // Yay, found a class
             if (isset($class)) {
-                $class = resolve($class);
+                if (!isset($method)) {
+                    $method = config('webarq.system.default-action');
+                    $indexParam--;
+                }
+// Get params value from it is request segment
+                $params = [];
+                if ($paramLength > 0) {
+                    $i = 0;
+                    while ($i < $paramLength) {
+                        $params[$i + 1] = \Request::segment($indexParam + $i);
+                        $i++;
+                    }
+                }
+// Resolving class
+                $class = resolve($class, [
+                        'module' => $module, 'controller' => $controller,
+                        'method' => $action, 'params' => $params]);
 // Execute class object "before" method if any
                 if (method_exists($class, 'before')) {
-                    $class->before($params);
+                    if (null !== ($before = $class->before($params))) {
+                        return $before;
+                    }
                 }
 // Call method (do not forget about method injection)
-                $call = App::call([$class, isset($method) ? $method : config('webarq.system.default-action')]);
+                $call = App::call([$class, $method], $params);
                 if (!is_null($call)) {
                     return $call;
                 } elseif (method_exists($class, 'after')) {
                     return $class->after();
                 } else {
+// @todo change error in to content not found file
                     return view('webarq.errors.404');
                 }
+            } else {
+                abort(404, 'Route not matched');
             }
         }
 );
