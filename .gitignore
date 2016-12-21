@@ -9,7 +9,7 @@
 !resources/views/webarq/*/
 !app/Http/Controllers
 !app/Http/Controllers/*/
-!app/Webarq/
+!app/Webarq
 !app/Webarq/*/
-!routes/
+!routes
 !routes/*
