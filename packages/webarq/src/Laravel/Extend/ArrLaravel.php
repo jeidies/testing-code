@@ -71,9 +71,9 @@ class ArrLaravel
          * Merge to or more array
          *
          * Option :
-         * normal  : Replace existing key
-         * join    : Will join existing key
-         * ignore  : Will ignore existing key
+         * normal|true  : Replace existing key
+         * join|null    : Will join existing key
+         * ignore|false : Will ignore existing key
          *
          * High note.
          * Numeric keys will be always appended
@@ -116,6 +116,14 @@ class ArrLaravel
          */
         Arr::macro('combine', function (array $old, array $new, $option = 'normal')
         {
+            if (true === $option) {
+                $option = 'normal';
+            } elseif (false === $option) {
+                $option = 'ignore';
+            } elseif (is_null($option)) {
+                $option = 'join';
+            }
+
             if ([] === $old) {
                 return $new;
             } elseif ([] === $new) {
@@ -139,7 +147,7 @@ class ArrLaravel
                 } else {
                     if (!isset($old[$key]) || 'normal' === $option) {
                         $old[$key] = $value;
-                    } else {
+                    } elseif ('join' === $option) {
                         $old[$key] .= ' ' . $value;
                     }
                 }

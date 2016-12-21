@@ -12,9 +12,12 @@ namespace Webarq\Info;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Wa;
+use Webarq\Manager\setPropertyManagerTrait;
 
 class ColumnInfo
 {
+    use setPropertyManagerTrait;
+
     /**
      * @var string
      */
@@ -95,8 +98,9 @@ class ColumnInfo
 // Merge data options with proper master data
         $this->mergeMasterData($options);
 // Serialize column options before running the setup
-        $this->serialize = serialize($options);
+        $this->serialize = base64_encode(serialize($options));
         $this->setUp($options);
+        $this->setExtra($options);
         $this->extra = $options;
     }
 
@@ -113,18 +117,17 @@ class ColumnInfo
         }
     }
 
-    /**
-     * @param array $options
-     */
-    protected function setUp(array &$options)
+    protected function setExtra(array &$options)
     {
         if ([] !== $options) {
-            $vars = get_class_vars('Webarq\Info\ColumnInfo');
-            unset($vars['extra']);
-            if ([] !== $vars) {
-                foreach (array_keys($vars) as $key) {
-                    $this->{$key} = array_pull($options, $key, $this->{$key});
+            foreach ($options as $key => $value) {
+                if (is_numeric($key)) {
+                    unset($options[$key]);
+                    $key = $value;
+                } elseif (is_array($value)) {
+                    $this->setExtra($value);
                 }
+                $options[$key] = $value;
             }
         }
     }
@@ -184,9 +187,12 @@ class ColumnInfo
         return false === $this->notnull;
     }
 
-    public function getSerialize()
+    /**
+     * @return array
+     */
+    public function unserialize()
     {
-        return $this->serialize;
+        return isset($this->serialize) ? unserialize(base64_decode($this->serialize)) : [];
     }
 
     public function isUnique()
@@ -197,6 +203,11 @@ class ColumnInfo
     public function isUniques()
     {
         return $this->uniques;
+    }
+
+    public function isInt()
+    {
+        return str_contains($this->type, 'int');
     }
 
     public function __get($key)
@@ -216,5 +227,19 @@ class ColumnInfo
     public function getExtra($key, $default = null)
     {
         return array_get($this->extra, $key, $default);
+    }
+
+    public function getInputAttribute()
+    {
+        $attr = Arr::merge($this->getExtra('form', []), [
+            'length' => $this->length,
+            'name' => $this->name,
+            'type' => 'radio',
+            'required' => $this->notnull ? 'required' : null,
+            'default' => $this->default !== Wa::getGhost() ? $this->default : null,
+            'numeric' => $this->isInt()
+        ], 'ignore');
+
+        return array_filter($attr);
     }
 }

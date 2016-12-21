@@ -1,157 +1,164 @@
 <?php
 /**
- * Created by PhpStorm
- * Date: 21/10/2016
- * Time: 16:02
- * Author: Daniel Simangunsong
- *
- *
- * How this routes work
- * Url : something.com/{module}/{controller}/{action}/param1/param2/ ...
- * is {module} directory located directly under app/Http/Controllers/Site/?
- *  1. Yes
- *    is {controller} controller file exist inside app/Http/Controllers/Site/{module} directory ?
- *      2. Yes
- *        is {action} method exist on {controller} class ?
- *          3. Yes
- *            call App/Http/Controllers/Site/{module}/{controller}->{action}()
- *          4. No
- *            - call App/Http/Controllers/Site/{module}/{controller}->actionIndex()
- *            - un shift {action} from params
- *
- *      5. No
- *        use {module} as {controller}
- *        use {controller} as {action}
- *        is {module} controller file exist inside app/Http/Controllers/Site directory ?
- *          6. Yes
- *            is {controller} method exist on {module} class ?
- *              7. Yes
- *                - call App/Http/Controllers/Site/{module}->{controller}()
- *                - un shift {action} from params
- *              8. No
- *                - call App/Http/Controllers/Site/{module}->actionIndex()
- *                - un shift {controller}, {action} from params
- *
- *          9. No
- *            use App/Http/Controllers/Site/StaticController
- *            use {module} as action
- *            is {module} method exist on StaticController class ?
- *              10. Yes
- *                - call App/Http/Controllers/Site/StaticController->{module}()
- *                - un shift {controller}, {action} from params
- *              11. No
- *                - call App/Http/Controllers/Site/StaticController->actionIndex()
- *                - un shift {module}, {controller}, {action} from params
- *
- *  No
- *    Run point 5
- *
+ * Created by PhpStorm.
+ * User: DanielSimangunsong
+ * Date: 12/19/2016
+ * Time: 12:18 PM
  */
+
+/**
+ * @param $string
+ * @return string
+ */
+function webarqMakeControllerMethod($class, $string)
+{
+    $method = config('webarq.system.action-prefix') . ucfirst(strtolower(Request::method())) . $string;
+    if (method_exists($class, $method)) {
+        return $method;
+    }
+}
+
+function webarqMakeControllerClass($namespace, $directory, $file)
+{
+    if (is_file($directory . DIRECTORY_SEPARATOR . $file . 'Controller.php')) {
+        return $namespace . $file . 'Controller';
+    }
+}
 
 if (Wa::config('system.configs.queryLog')) {
     DB::enableQueryLog();
 }
-// Starts with allowed url format
-$urlFormat = '{directory?}/{module?}/{controller?}/{action?}';
-// Allowing parameter
+// Starts with accepted url format
+$urlFormat = '{directory?}/{module?}/{panel?}/{action?}';
+// Following by accepted parameter
 $paramLength = 4;
 if ($paramLength > 0) {
     for ($i = 1; $i <= $paramLength; $i++) {
         $urlFormat .= '/{param' . $i . '?}';
     }
 }
-Route::match(['get', 'post'], $urlFormat,
-        function ($directory = 'site', $module = 'system', $controller = 'static', $action = 'index')
-        use ($paramLength, $urlFormat) {
+Route::match(['get', 'post'], $urlFormat, function () use ($paramLength, $urlFormat) {
+// Original params
+    $params = '/' !== Request::path()
+            ? array_filter(
+                    explode('/', strtolower(Request::path())), function($value) { return trim($value) !== ''; })
+            : [];
+    $directory = array_pull($params, 0, 'Site');
+    $module = array_pull($params, 1, 'System');
+    $panel = array_pull($params, 2, config('webarq.system.default-controller', 'base'));
+    $action = array_pull($params, 3);
 // Since we do not need to write down directory name in url while accessing site page,
-// we need to re-assign url section value
-            if (config('webarq.system.panel-url-prefix') !== $directory) {
-                $action = $controller;
-                $controller = $module;
-                $module = $directory;
-                $directory = 'Site';
-                $indexParam = 4;
-                $paramLength++;
-            } else {
-                $indexParam = 5;
-                $directory = 'Panel';
-            }
-
+// we need to re-assign $directory, $module, $panel, $action and $params value
+    if (config('webarq.system.panel-url-prefix') !== $directory) {
+        $action = $panel;
+        $panel = $module;
+        $module = $directory;
+        $directory = 'site';
+        $inAdminPage = false;
+    } else {
+        $inAdminPage = true;
+        $directory = 'panel';
+    }
 // Server directory separator
-            $sep = DIRECTORY_SEPARATOR;
-// Controller action prefix
-            $actPrefix = config('webarq.system.action-prefix') . ucfirst(strtolower(Request::method()));
-// File controller should be under App/Http/Controllers/$directory
-            $absolute = 'App' . $sep . 'Http' . $sep . 'Controllers' . $sep . $directory . $sep;
-            $relative = '..' . $sep . 'app' . $sep . 'Http' . $sep . 'Controllers' . $sep . $directory . $sep;
+    $sep = DIRECTORY_SEPARATOR;
 // Set convention name
-            $module = studly_case($module);
-            $controller = studly_case($controller);
-            $action = studly_case($action);
-// Yes, normally module is a directory
-            if (is_dir($relative . $module)) {
-                if (is_file($relative . $module . $sep . $controller . 'Controller.php')) {
-                    $class = $absolute . $module . $sep . $controller . 'Controller';
-                    if (method_exists($class, $actPrefix . $action)) {
-                        $method = $actPrefix . $action;
-                    }
-                }
-            } elseif (is_file($relative . $module . $sep . 'Controller.php')) {
-// But, in case it is not, module will act as controller, and so on
-                $class = $absolute . $module . 'Controller';
-                $indexParam--;
-                if (method_exists($class, $actPrefix . $controller)) {
-                    $method = $actPrefix . $controller;
-                }
-            } elseif (null !== ($class = config('webarq.system.default-controller'))) {
-// Ups, controller still undetected, use default controller (if any)
-                if (is_file($relative . $class . '.php')) {
-                    $class = $absolute . $class;
-                    $indexParam -= 2;
-                    if (method_exists($class, $actPrefix . $module)) {
-                        $method = $actPrefix . $module;
-                    }
-                } else {
-                    $class = null;
-                }
-            }
-// Yay, found a class
-            if (isset($class)) {
-                if (!isset($method)) {
-                    $method = config('webarq.system.default-action');
-                    $indexParam--;
-                }
-// Get params value from it is request segment
-                $params = [];
-                if ($paramLength > 0) {
-                    $i = 0;
-                    while ($i < $paramLength) {
-                        $params[$i + 1] = \Request::segment($indexParam + $i);
-                        $i++;
-                    }
-                }
-// Resolving class
-                $class = resolve($class, [
-                        'module' => $module, 'controller' => $controller,
-                        'method' => $action, 'params' => $params]);
-// Execute class object "before" method if any
-                if (method_exists($class, 'before')) {
-                    if (null !== ($before = $class->before($params))) {
-                        return $before;
-                    }
-                }
-// Call method (do not forget about method injection)
-                $call = App::call([$class, $method], $params);
-                if (!is_null($call)) {
-                    return $call;
-                } elseif (method_exists($class, 'after')) {
-                    return $class->after();
-                } else {
-// @todo change error in to content not found file
-                    return view('webarq.errors.404');
-                }
-            } else {
-                abort(404, 'Route not matched');
+    $directory1 = studly_case($directory);
+    $module1 = studly_case($module);
+    $panel1 = studly_case($panel);
+    $action1 = studly_case($action);
+// Controller action prefix
+// File controller should be under App/Http/Controllers/$directory
+    $namespace = 'App' . $sep . 'Http' . $sep . 'Controllers' . $sep . $directory1 . $sep;
+    $root = '..' . $sep . 'app' . $sep . 'Http' . $sep . 'Controllers' . $sep . $directory . $sep;
+// Starting by checking if segment panel is a directory
+    if (is_dir($root . $module1 . $sep . $panel1) &&
+            null !==
+            ($class = webarqMakeControllerClass($namespace, $root, $module1 . $sep . $panel1 . $sep . $action1))
+    ) {
+        $controller = $action;
+// Pull out first parameter item when it is a valid method of class controller
+        if (null !== ($method = webarqMakeControllerMethod($class, array_get($params, 4))) || $inAdminPage) {
+            $action = array_pull($params, 4);
+        }
+    } // Down to segment module
+    elseif (is_dir($root . $module1) &&
+            null !== ($class = webarqMakeControllerClass($namespace, $root, $module1 . $sep . $panel1))
+    ) {
+        $controller = $panel;
+// Un-shift $action into modified parameters when it is not a valid method of class controller and not in admin page
+        if (null === ($method = webarqMakeControllerMethod($class, $action1)) && isset($action) && !$inAdminPage) {
+            $params1 = [$action];
+            $action = null;
+        }
+    } // Down to segment directory
+    elseif (null !== ($class = webarqMakeControllerClass($namespace, $root, $module1))) {
+        $controller = $module;
+        $params1 = [];
+// Un-shift $action into modified parameters
+        if (isset($action)) {
+            $params1[] = $action;
+        }
+        if (null !== ($method = webarqMakeControllerMethod($class, $panel1)) && isset($panel) || $inAdminPage) {
+            $action = $panel;
+        } elseif (isset($panel)) {
+// Un-shift $panel into modified parameters
+            array_unshift($params1, $panel);
+        }
+    } // Down to default controller
+    elseif (null !== ($controller = config('webarq.system.default-controller'))
+            && null !== ($class = webarqMakeControllerClass($namespace, $root, studly_case($controller)))
+    ) {
+        $params1 = [];
+// Un-shift $panel into modified parameters
+        if (isset($panel)) {
+            $params1[] = $panel;
+// Un-shift $action into modified parameters
+            if (isset($action)) {
+                $params1[] = $action;
             }
         }
-);
+        if (null === ($method = webarqMakeControllerMethod($class, $module1)) && isset($module) || $inAdminPage) {
+            $action = $module;
+// Un-shift $module into parameters
+        } elseif (isset($module)) {
+            array_unshift($params1, $module);
+        }
+    }
+// Merge unexpected arguments
+    if (isset($params1) && [] !== $params1) {
+        $params = array_merge($params1, $params);
+    } elseif ([] !== $params) { // Re-indexing parameters while not empty
+        $params = array_combine(range(1, count($params)), array_values($params));
+    }
+
+// Yay, found a class
+    if (isset($class)) {
+        if (!isset($method)) {
+            $action = isset($action) && isset($inAdminPage) ? 'forbidden' : config('webarq.system.default-action');
+            $method = config('webarq.system.action-prefix') . ucfirst(strtolower(Request::method()))
+                    . studly_case($action);
+        }
+// Resolving class
+        $class = resolve($class, [
+                'controller' => $controller,
+                'module' => $module, 'panel' => $panel,
+                'action' => $action, 'params' => $params]);
+// Execute class object "before" method if any
+        if (method_exists($class, 'before')) {
+            if (null !== ($before = $class->before($params))) {
+                return $before;
+            }
+        }
+// Call method (do not forget about method injection)
+        $call = App::call([$class, $method], $params);
+        if (!is_null($call)) {
+            return $call;
+        } elseif (method_exists($class, 'after')) {
+            return $class->after();
+        } else {
+            return view('webarq.errors.204');
+        }
+    } else {
+        abort(404, 'Route not matched');
+    }
+});

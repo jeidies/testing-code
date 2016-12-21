@@ -89,9 +89,9 @@ class ModuleInfo
             foreach ($options as $key => $value) {
                 if (is_numeric($key)) {
                     $key = $value;
-                    $value = [];
+                    $value = Wa::config($this->name . '.panel.' . $key);
                 }
-                $this->panels[$key] = Wa::load('info.panel', $value);
+                $this->panels[$key] = Wa::load('info.panel', $key, $value);
             }
         }
     }

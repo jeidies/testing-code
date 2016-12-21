@@ -62,9 +62,9 @@ class Wa
     }
 
     /**
-     * @return array
-     *
      * Get config modules
+     *
+     * @return array
      */
     public function modules()
     {
@@ -72,8 +72,10 @@ class Wa
     }
 
     /**
+     * Load config-module configuration
+     *
      * @param $name
-     * @return object
+     * @return object Webarq\Info\ModuleInfo
      */
     public function module($name)
     {
@@ -111,7 +113,7 @@ class Wa
                 if (is_callable([$fp, 'getInstance'])) {
                     $this->instances[$class] = $fp::getInstance($args, $this->getGhost());
                 } else {
-                        $this->instances[$class] = $this->load(false, $fp, $args, $this->getGhost());
+                    $this->instances[$class] = $this->load(false, $fp, $args, $this->getGhost());
                 }
                 return $this->instances[$class];
             } else {
@@ -137,23 +139,31 @@ class Wa
         $path = str_replace('-', ' ', $path);
         $path = explode('.', $path);
         if (count($path) > 1) {
-            foreach ($path as &$item) {
-                if (str_contains($item, '!')) {
-                    $item = substr($item, 0, -1);
-                } else {
-                    $item = ucfirst(strtolower($item));
-                }
-            }
-
+            $path = $this->compilePathName($path);
             $class = implode('\\', $path);
             if (!str_contains(last($path), '$')) {
                 $class .= $path[0];
             }
         } else {
-            $class = ucfirst(strtolower($path));
+            $class = ucfirst(strtolower(current($path)));
         }
 
         return $this->space . '\\' . $class;
+    }
+
+    private function compilePathName(array $path)
+    {
+        foreach ($path as &$item) {
+            if (str_contains($item, ' ')) {
+                $item = $this->compilePathName(explode(' ',$item));
+                $item = implode('', $item);
+            } elseif (ends_with($item, '!')) {
+                $item = substr($item, 0, -1);
+            } else {
+                $item = studly_case($item);
+            }
+        }
+        return $path;
     }
 
     /**
@@ -176,6 +186,10 @@ class Wa
         }
         if ($this->getGhost() === array_get($args, 1)) {
             $args = $args[0];
+        }
+// Prioritize app layer
+        if (class_exists('App\\' . $class)) {
+            $class = 'App\\' . $class;
         }
 
         switch (count($args)) {
@@ -249,6 +263,6 @@ class Wa
             $toHtml = $attr;
             $attr = [];
         }
-        return $this->html('element',$content, $container, $attr)->toHtml();
+        return $this->html('element', $content, $container, $attr)->toHtml();
     }
 }

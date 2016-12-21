@@ -18,7 +18,7 @@ return [
         ['master' => 'sequence'],
         'timestamps' => true,
         'log' => [
-            'group' => 'menu',
-            'object' => 'title'
+                'group' => 'menu',
+                'object' => 'title'
         ]
 ];

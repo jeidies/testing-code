@@ -42,5 +42,15 @@ class UrlLaravel
 
             return $this->to($str, $attr, $secure ?: config('webarq.system.secureUrl'));
         });
+
+        URL::macro('detect', function ($url, $module, $panel, $item) {
+            if (true === $url) {
+                return $module . '/' . $panel . '/' . $item;
+            } elseif (!isset($url)) {
+                return 'helper/' . $item . '/' . $module . '/' . $panel;
+            }
+            // When not set, will use system determination which is return helper/listing/index/systems/admins
+// True will return systems/admins/listing
+        });
     }
 }

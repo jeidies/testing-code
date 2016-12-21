@@ -10,8 +10,8 @@
 | to using a Closure or controller method. Build something great!
 |
 */
-
 Route::get('/', function () {
+    dd('lo');
 //    Auth::attempt(['username' => 'superadmin']);
     return view('welcome');
 });

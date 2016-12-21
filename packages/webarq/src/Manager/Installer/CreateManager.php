@@ -149,4 +149,9 @@ class CreateManager extends InstallerAbstract
             }
         }
     }
+
+    private function insertSeeds()
+    {
+
+    }
 }

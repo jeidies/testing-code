@@ -33,7 +33,7 @@ class InputManager implements Htmlable
      */
     protected $containers = [
             'input' => '<div class="form-group"></div>',
-            'info' => '<small id="fileHelp" class="form-text text-muted"></small>',
+            'info' => '<small class="control-info form-text text-muted"></small>',
             'label' => '<label class="control-label"></label>'
     ];
 

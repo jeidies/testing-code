@@ -58,6 +58,11 @@ class FormManager implements Htmlable
     protected $elementInfoDefaultContainer;
 
     /**
+     * @var
+     */
+    protected $submit;
+
+    /**
      * @param null $action
      * @param array $attributes
      * @param string $container
@@ -144,7 +149,7 @@ class FormManager implements Htmlable
         }
 // Initiate InputManager class
         $manager = new InputManager(
-                $args, !isset($label) ? ucwords(snake_case(camel_case(array_get($args, 1)), ' ')) : $label, $info,
+                $args, $label ? : ucwords(snake_case(camel_case(array_get($args, 1)), ' ')), $info,
                 array_filter([
                         'input' => $container,
                         'label' => $this->elementLabelDefaultContainer,
@@ -194,6 +199,20 @@ class FormManager implements Htmlable
         }
     }
 
+    /**
+     * Set submit
+     *
+     * @param submit
+     * @param $this
+     */
+
+    public function submit($string)
+    {
+        $this->submit = $string;
+
+        return $this;
+    }
+
     public function toHtml()
     {
         $s = '';
@@ -206,6 +225,9 @@ class FormManager implements Htmlable
             }
 
             return (new ElementManager($s . $this->compile(), $this->container))->toHtml();
+        } else {
+            $s = config('webarq.system.configuration-error',
+                    'Inputs not provided yet. Please support me by doing the right thing :)');
         }
         return $s;
     }
@@ -222,6 +244,11 @@ class FormManager implements Htmlable
             if (null !== ($br = array_get($this->br, $i))) {
                 $s .= $br->toHtml();
             }
+        }
+        if (!isset($this->submit)) {
+            $s .= Wa::html('element', Form::submit('Submit'))->toHtml();
+        } else {
+            $s .= $this->submit;
         }
         return $s . Form::close();
     }

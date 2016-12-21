@@ -12,19 +12,22 @@ return [
                 'permissions', 'configurations', 'admins', 'admin_roles', 'roles', 'menus'
         ],
         'panels' => [
-                'roles',
+                'dashboard' => [
+// When not set, will use system determination which is return helper/listing/index/systems/admins
+// True will return systems/admins/listing
+                        'permalink' => true,
+                        'class' => 'dashboard',
+                        'label' => 'Dashboard'
+                ],
                 'admins' => [
-                        'listing' => [
-// When not set, will use system determination
-                                'permalink' => 'some-link',
+                        'permalink' => true,
 // When not set, will translate group name
-                                'label' => 'Dashboard',
-                        ],
+                        'label' => 'Admins',
 // Panel allowed action
                         'actions' => [
                                 'activeness',
                                 'create' => [
-// Transaction rules if any. This will be checking on routes while possible, or on admin base controller, or on
+// Actions rules if any. This will be checking on routes while possible, or on admin base controller, or on
 // the related controller it self
                                         'rules' => [
                                                 'permissions' => [
@@ -33,6 +36,7 @@ return [
                                         ],
 // Transaction form if any
                                         'form' => [
+                                                'title' => 'someBody',
 // Following by input key => attributes
 // Input key should be following "moduleName.tableName.columnName" format name
                                                 'system.admins.username' => [
@@ -44,16 +48,27 @@ return [
 
                                                         ]
                                                 ],
-                                                'system.admins.password' => [
-
+                                                'system.admins.password',
+                                                'system.admins.email' => [
+                                                        'class' => 'email'
                                                 ],
-                                                'system.admin_roles.role_id'
+                                                'system.admin_roles.role_id' => [
+                                                        'label' => 'Role',
+                                                        'type' => 'select',
+                                                        'multiple',
+                                                        'options' => ['doe' => [
+                                                                1 => 'Superadmin',
+                                                                2 => 'Administrator']
+                                                        ],
+                                                        'info' => 'put some information here'
+                                                ]
                                         ]
                                 ],
                                 'edit',
                                 'delete',
                                 'is_system'
                         ]
-                ]
+                ],
+                'roles'
         ],
 ];

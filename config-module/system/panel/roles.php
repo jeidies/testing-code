@@ -7,19 +7,13 @@
  */
 
 return [
-// When not set, will use system determination
-        'permalink' => 'some-link',
+        'permalink' => true,
 // When not set, will translate group name
-        'label' => 'Dashboard',
-// Listing header column
-        'header' => [
-                'title', 'totalUser'
-        ],
 // Panel allowed action
         'actions' => [
                 'activeness',
                 'create' => [
-// Transaction rules if any. This will be checking on routes while possible, or on admin base controller, or on
+// Actions rules if any. This will be checking on routes while possible, or on admin base controller, or on
 // the related controller it self
                         'rules' => [
                                 'permissions' => [
@@ -28,17 +22,21 @@ return [
                         ],
 // Transaction form if any
                         'form' => [
+                                'title' => 'Create Role',
 // Following by input key => attributes
-// Input key must following "moduleName.tableName.columnName" convention name
-                                'some-module.some-table.some-column' => [
+// Input key should be following "moduleName.tableName.columnName" format name
+                                'system.roles.role_level' => [
                                         'type' => 'text',
-                                        'length' => '100',
-// Input rules:
-
+                                        'name' => 'nyambi',
+                                        'label' => 'Level',
                                         'rules' => [
-
+                                                'admin.role_level' => ['>', 'value']
                                         ]
-                                ]
+                                ],
+                                'system.roles.title',
+                                'system.roles.is_admin',
+                                'system.roles.is_active',
+                                'system.roles.is_system'
                         ]
                 ],
                 'edit',

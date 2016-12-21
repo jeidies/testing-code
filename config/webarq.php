@@ -36,9 +36,14 @@ return [
                 'secureUrl' => false,
                 'queryLog' => true,
                 'panel-url-prefix' => 'admin-cp',
-                'default-controller' => 'StaticController',
+                'default-controller' => 'base',
+                'default-action' => 'index',
                 'action-prefix' => 'action',
-                'default-action' => 'actionGetIndex'
+                'error-message' => [
+                        'configuration' => 'It seems some of your configuration still need to be fixed :). '
+                                . 'Please help me by do the things rightfully',
+
+                ]
         ],
 
 //Themes
@@ -159,28 +164,40 @@ return [
                         'type' => 'tinyint',
                         'length' => 4,
                         'unsigned' => true,
-                        'name' => 'id'
+                        'name' => 'id',
+                        'form' => [
+                                'type' => 'text'
+                        ]
                 ],
 
                 'smallInt' => [
                         'type' => 'smallint',
                         'length' => 6,
                         'unsigned' => true,
-                        'name' => 'id'
+                        'name' => 'id',
+                        'form' => [
+                                'type' => 'text'
+                        ]
                 ],
 
                 'int' => [
                         'type' => 'int',
                         'length' => 11,
                         'unsigned' => true,
-                        'name' => 'id'
+                        'name' => 'id',
+                        'form' => [
+                                'type' => 'text'
+                        ]
                 ],
 
                 'bigInt' => [
                         'type' => 'bigint',
                         'length' => 20,
                         'unsigned' => true,
-                        'name' => 'id'
+                        'name' => 'id',
+                        'form' => [
+                                'type' => 'text'
+                        ]
                 ],
 
                 'tinySequence' => [

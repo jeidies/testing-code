@@ -11,27 +11,56 @@
 namespace Webarq\Info;
 
 
+use Webarq\Manager\setPropertyManagerTrait;
+
 class PanelInfo
 {
-    protected $options = [];
+    use setPropertyManagerTrait;
 
-    public function __construct(array $options)
+    protected $permalink;
+
+    protected $label;
+
+    protected $actions = [];
+
+    protected $name;
+
+    protected $attributes = [];
+
+    public function __construct($name, array $options)
     {
-        $this->options = $options;
+        $this->name = $name;
+// Pull out property value from options
+        $this->setup($options);
+// Rest options will be store in attributes
+        $this->attributes = $options;
     }
 
-    public function getAction($key, $default = [])
+    /**
+     * @return mixed
+     */
+    public function getName()
     {
-        return $this->getOption('actions.' . $key, $default);
+        return $this->name;
     }
 
-    public function getOption($key, $default = null)
+    /**
+     * @param $key
+     * @param null $default
+     * @return mixed
+     */
+    public function getAction($key, $default = null)
     {
-        return array_get($this->options, $key, $default);
+        return array_get($this->actions, $key, $default);
     }
 
-    public function getList($default = [])
+    /**
+     * Get panel label, if empty return panel name
+     *
+     * @return mixed
+     */
+    public function getLabel()
     {
-        return $this->getOption('listing', $default);
+        return $this->label ? : $this->name;
     }
 }
