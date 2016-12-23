@@ -17,58 +17,91 @@ use Wa;
 use Webarq\Info\ColumnInfo;
 use Webarq\Manager\setPropertyManagerTrait;
 
+/**
+ * Panel form generator
+ *
+ * Generate form based on configuration module files
+ *
+ * Class FormManager
+ * @package Webarq\Manager\Cms\HTML
+ */
 class FormManager implements Htmlable
 {
-    use setPropertyManagerTrait;
+    use SetPropertyManagerTrait;
 
     /**
+     * URL module segment
+     *
      * @var string
      */
     protected $module;
 
     /**
+     * URL panel segment
+     *
      * @var string
      */
     protected $panel;
 
     /**
-     * Transaction type, create or edit
+     * Form type, create|edit
      *
      * @var string
      */
     protected $type;
 
     /**
+     * Form method type, post|edit
+     *
+     * @var string
+     */
+    protected $method;
+
+    /**
+     * Form title
+     *
      * @var string
      */
     protected $title;
 
     /**
+     * Form action
+     *
      * @var string
      */
     protected $action;
 
     /**
+     * Form attributes
+     *
      * @var array
      */
     protected $attributes = [];
 
     /**
+     * Transaction pairs, used on insert|update processing
+     *
      * @var array
      */
     protected $pairs = [];
 
     /**
+     * Form inputs collection
+     *
      * @var array
      */
     protected $inputs = [];
 
     /**
-     * @var \Webarq\Manager\HTML\FormManager
+     * Form builder
+     *
+     * @var object Webarq\Manager\HTML\FormManager
      */
     protected $builder;
 
     /**
+     * Form view template
+     *
      * @var string
      */
     protected $view = 'webarq.form.cms.index';
@@ -88,6 +121,11 @@ class FormManager implements Htmlable
     protected $master;
 
     /**
+     * @var
+     */
+    protected $multilingual;
+
+    /**
      * @param string $module
      * @param string $panel
      * @param string $type
@@ -103,14 +141,16 @@ class FormManager implements Htmlable
     }
 
     /**
-     * Compile rest options in to proper property
+     * Extract options in to class property
      *
      * @param array $options
      */
     protected function compileOptions(array $options)
     {
         $this->master = array_pull($options, 'master');
-        $this->setup($options);
+
+        $this->setPropertyFromOptions($options);
+
         if ([] !== $options) {
             foreach ($options as $key => $value) {
                 if (is_numeric($key)) {
@@ -134,6 +174,8 @@ class FormManager implements Htmlable
     }
 
     /**
+     * Build form url action
+     *
      * @return mixed
      */
     protected function finalizeAction()
@@ -142,11 +184,11 @@ class FormManager implements Htmlable
     }
 
     /**
-     * Finalize form configuration
+     * Compile form
      *
      * @return $this
      */
-    public function finalize()
+    public function compile()
     {
         $this->compileInputs();
 
@@ -154,6 +196,88 @@ class FormManager implements Htmlable
     }
 
     /**
+     * Add collections in to $builder by compiling $inputs property
+     */
+    protected function compileInputs()
+    {
+        if ([] !== $this->inputs) {
+            foreach ($this->inputs as $key => $input) {
+// Add collection group
+                if (is_numeric($key)) {
+
+                } else {
+                    $this->buildInput($key, $this->getColumnInfo($key), $input);
+                }
+            }
+        }
+    }
+
+    /**
+     * Input builder
+     *
+     * @param string $path
+     * @param ColumnInfo $column
+     * @param array $settings
+     */
+    protected function buildInput($path, ColumnInfo $column, array $settings = [])
+    {
+// Input attributes
+        $attr = $column->getInputAttribute();
+
+// Merge with new setting
+        if ([] !== $settings) {
+            $attr = Arr::merge($attr, $settings);
+        }
+
+// Attribute type and name should not be empty
+        if (null === ($type = array_pull($attr, 'type')) || null === ($name = array_pull($attr, 'name'))) {
+            abort('405', config('webarq.system.error-message.configuration'));
+        }
+
+// This is could be pain on the process, but due to laravel input form method behaviour is different
+// one from another, we need class helper to enable us adding collection with proper arguments
+// @todo Build own form builder to simplify the logic
+        $class = Wa::normalizeClass('manager.cms.HTML!.form.input.' . $type . ' input');
+        if (class_exists($class)) {
+            $input = Wa::load(false, $class, $this->builder, $this->module, $this->panel,
+                    $type, $name, array_pull($attr, 'value'), $attr);
+        } else {
+            $input = Wa::load('manager.cms.HTML!.form.input',
+                    $this->builder, $this->module, $this->panel, $type, $name, array_pull($attr, 'value'), $attr);
+        }
+
+// Check for input permissions
+        if ([] === $input->permissions || \Auth::user()->hasPermission(
+                        Wa::formatPermissions($input->permissions, $this->module, $this->panel))
+        ) {
+
+            $this->pairs[$name] = $path;
+            if (null !== $input->rules) {
+                $this->rules[$name] = $input->rules;
+            }
+            $input->buildInput();
+        }
+    }
+
+    /**
+     * Get column information
+     *
+     * @param $column
+     * @return mixed
+     */
+    protected function getColumnInfo($column)
+    {
+        list($module, $table, $column) = explode('.', $column);
+
+        return Wa::module($module)->getTable($table)->getColumn($column);
+    }
+
+    /**
+     * Set form inputs
+     *
+     * While inputs already exist and options not empty,
+     * merge inputs options with the previous one
+     *
      * @param $name
      * @param array $options
      * @return $this
@@ -169,6 +293,13 @@ class FormManager implements Htmlable
         return $this;
     }
 
+    /**
+     * Convert $builder into well formatted HTML element
+     *
+     * @return string
+     * @throws \Exception
+     * @throws \Throwable
+     */
     public function toHtml()
     {
         if (isset($this->title)) {
@@ -178,64 +309,8 @@ class FormManager implements Htmlable
         return view($this->view, ['html' => $this->builder->toHtml()])->render();
     }
 
-    protected function compileInputs()
-    {
-        if ([] !== $this->inputs) {
-            foreach ($this->inputs as $key => $input) {
-// Add collection group
-                if (is_numeric($key)) {
-
-                } else {
-                    $this->buildColumn($key, $this->getColumnInfo($key), $input);
-                }
-            }
-        }
-    }
-
     /**
-     * @param string $path
-     * @param ColumnInfo $column
-     * @param array $settings
-     */
-    protected function buildColumn($path, ColumnInfo $column, array $settings = [])
-    {
-// Re initiate ColumnInfo $column while setting is not empty
-        if ([] !== $settings) {
-            $column = Wa::load('info.column', Arr::merge($column->unserialize(), ['form' => $settings]));
-        }
-// Input attributes
-        $attr = $column->getInputAttribute();
-// Attribute type and name should not be empty
-        if (null === ($type = array_pull($attr, 'type')) || null === ($name = array_pull($attr, 'name'))) {
-            abort('405', config('webarq.system.error-message.configuration'));
-        }
-// Set pairs
-        array_set($this->pairs, $path, $name);
-// Set rules
-        $this->rules[$name] = array_pull($attr, 'rules');
-// Add input into builder
-        $class = Wa::normalizeClass('manager.cms.HTML!.form.input.' . $type . ' input');
-        if (class_exists($class)) {
-            Wa::load(false, $class, $this->builder, $type, $name, array_pull($attr, 'value'), $attr);
-        } else {
-            Wa::load('manager.cms.HTML!.form.input',
-                    $this->builder, $type, $name, array_pull($attr, 'value'), $attr);
-        }
-    }
-
-    /**
-     * @param $column
-     * @return mixed
-     */
-    protected function getColumnInfo($column)
-    {
-        list($module, $table, $column) = explode('.', $column);
-
-        return Wa::module($module)->getTable($table)->getColumn($column);
-    }
-
-    /**
-     * Get input pairs
+     * Get form pairs
      *
      * @return array
      */
@@ -245,7 +320,7 @@ class FormManager implements Htmlable
     }
 
     /**
-     * Get input rules
+     * Get form rules
      *
      * @return array
      */
@@ -265,6 +340,8 @@ class FormManager implements Htmlable
     }
 
     /**
+     * Get form master
+     *
      * @return string
      */
     public function getMaster()

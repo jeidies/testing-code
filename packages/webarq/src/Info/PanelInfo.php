@@ -13,30 +13,74 @@ namespace Webarq\Info;
 
 use Webarq\Manager\setPropertyManagerTrait;
 
+/**
+ * Helper class
+ *
+ * Class PanelInfo
+ * @package Webarq\Info
+ */
 class PanelInfo
 {
-    use setPropertyManagerTrait;
+    use SetPropertyManagerTrait;
 
-    protected $permalink;
-
-    protected $label;
-
-    protected $actions = [];
-
+    /**
+     * Panel name
+     * Used when generate panel anchor <a/> html tag
+     *
+     * @var
+     */
     protected $name;
 
+    /**
+     * Panel permalink
+     * Used when generate panel anchor <a/> html tag
+     *
+     * @var mixed
+     */
+    protected $permalink;
+
+    /**
+     * Panel label
+     * Used when generate panel anchor <a/> html tag
+     *
+     * @var
+     */
+    protected $label;
+
+    /**
+     * Panel permitted actions
+     * Used when generate panel button in listing
+     *
+     * @var array
+     */
+    protected $actions = [];
+
+    /**
+     * Panel attributes.
+     * Used when generate panel anchor <a/> html tag
+     *
+     * @var array
+     */
     protected $attributes = [];
 
+    /**
+     * Create PanelInfo instance
+     *
+     * @param $name
+     * @param array $options
+     */
     public function __construct($name, array $options)
     {
         $this->name = $name;
-// Pull out property value from options
-        $this->setup($options);
-// Rest options will be store in attributes
+
+        $this->setPropertyFromOptions($options);
+
         $this->attributes = $options;
     }
 
     /**
+     * Get panel name
+     *
      * @return mixed
      */
     public function getName()
@@ -45,6 +89,8 @@ class PanelInfo
     }
 
     /**
+     * Get panel action
+     *
      * @param $key
      * @param null $default
      * @return mixed

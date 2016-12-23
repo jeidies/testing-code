@@ -17,52 +17,71 @@ use Wa;
 use Webarq\Manager\HTML\Form\InputManager;
 
 /**
+ * A helper class to generator form by adding default layout in to it
+ *
  * Class FormManager
  * @package Webarq\Manager\HTML
  */
 class FormManager implements Htmlable
 {
     /**
+     * Form attributes
+     *
      * @var array
      */
     protected $attributes;
 
     /**
+     * Form container
+     *
      * @var string
      */
     protected $container;
 
     /**
+     * Form title
+     *
      * @var object Webarq\Manager\HTML\ContainerManager
      */
     protected $title;
 
     /**
+     * Form inputs
+     *
      * @var array
      */
     protected $inputs = [];
 
     /**
+     * Input separator
+     *
      * @var array
      */
     protected $br = [];
 
     /**
+     * Default html label container
+     *
      * @var
      */
     protected $elementLabelDefaultContainer;
 
     /**
+     * Default html information container
      * @var
      */
     protected $elementInfoDefaultContainer;
 
     /**
+     * Form submit button
+     *
      * @var
      */
     protected $submit;
 
     /**
+     * Create FormManager instance
+     *
      * @param null $action
      * @param array $attributes
      * @param string $container
@@ -75,6 +94,8 @@ class FormManager implements Htmlable
     }
 
     /**
+     * Set form title
+     *
      * @param $title
      * @param string $container
      * @param array $attr
@@ -87,6 +108,12 @@ class FormManager implements Htmlable
         return $this;
     }
 
+    /**
+     * Set html label default container
+     *
+     * @param $container
+     * @return $this
+     */
     public function setElementLabelDefaultContainer($container)
     {
         $this->elementLabelDefaultContainer = $container;
@@ -94,6 +121,12 @@ class FormManager implements Htmlable
         return $this;
     }
 
+    /**
+     * Set html information default container
+     *
+     * @param $container
+     * @return $this
+     */
     public function setElementInfoDefaultContainer($container)
     {
         $this->elementInfoDefaultContainer = $container;
@@ -101,6 +134,12 @@ class FormManager implements Htmlable
         return $this;
     }
 
+    /**
+     * Insert <br/> tag between each inputs
+     *
+     * @param string $tag
+     * @return $this
+     */
     public function addBr($tag = 'br')
     {
         if (!isset($this->br['title']) && isset($this->title)) {
@@ -113,10 +152,10 @@ class FormManager implements Htmlable
     }
 
     /**
-     * Add collections and display it as inline group
-     * See addCollection, for arguments
+     * Add multiple input at once
      *
      * @param array $inputs
+     * @see setInputManager()
      */
     public function addCollectionGroup(array $inputs = [])
     {
@@ -136,6 +175,8 @@ class FormManager implements Htmlable
     }
 
     /**
+     * Get input manager
+     *
      * @param $args
      * @param null $label
      * @param null $info
@@ -144,9 +185,6 @@ class FormManager implements Htmlable
      */
     private function setInputManager($args, $label = null, $info = null, $container = null)
     {
-        if (isset($container)) {
-
-        }
 // Initiate InputManager class
         $manager = new InputManager(
                 $args, $label ? : ucwords(snake_case(camel_case(array_get($args, 1)), ' ')), $info,
@@ -159,10 +197,10 @@ class FormManager implements Htmlable
     }
 
     /**
+     * Add single or multiple input
+     *
      * Deliberately this method will call related laravel form builder method (eg. Form::text, Form::radio, etc)
      * following by it is original parameter
-     *
-     * Single element
      *
      * $f->addCollection(['text', 'codename', 'value'], 'Code Name', 'Get before i take it from you', 'div');
      * $f->addCollection('text', 'codename', 'value')
@@ -200,12 +238,11 @@ class FormManager implements Htmlable
     }
 
     /**
-     * Set submit
+     * Set form submit
      *
      * @param submit
-     * @param $this
+     * @return $this
      */
-
     public function submit($string)
     {
         $this->submit = $string;
@@ -213,6 +250,11 @@ class FormManager implements Htmlable
         return $this;
     }
 
+    /**
+     * Generate well formatted html form element
+     *
+     * @return mixed|string
+     */
     public function toHtml()
     {
         $s = '';
@@ -232,6 +274,11 @@ class FormManager implements Htmlable
         return $s;
     }
 
+    /**
+     * Compile inputs
+     *
+     * @return string
+     */
     private function compile()
     {
         $s = Form::open($this->attributes);
@@ -253,6 +300,12 @@ class FormManager implements Htmlable
         return $s . Form::close();
     }
 
+    /**
+     * Compile group inputs
+     *
+     * @param array $collections
+     * @return string
+     */
     private function compileGroup(array $collections)
     {
         $s = '';

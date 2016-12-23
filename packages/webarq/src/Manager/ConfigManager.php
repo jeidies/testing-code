@@ -10,18 +10,25 @@ namespace Webarq\Manager;
 
 /**
  * This class will read given files which is exists in "config-module" directory.
- * To use this class, users should call it  by it is static "get" method, instead of initiate it as a new object.
- * And generally this method return array if given path is valid, otherwise will return given "$default" value.
- * But, in some circumstances when users need the object ConfigManager it self, then users should set true as "$default"
- * value, and "$path" value must be only valid file
+ * To use this class, you should call it  by it is static "get" method, instead of
+ * initiate it as a new object. If there is no matched item/file, than will return
+ * given $default value
+ *
+ * But, when you needed the instances of ConfigManager it self, then you should set
+ * $default in to true and "$path" value must be only valid file
  *
  * How to use:
  *   ConfigManager:get('coolFileName.coolKeyName')
- * There is more, if you need to get multiple configuration value at once, separate your {coolKeyName}
- * with "," and this automatically prohibited the use of "," sign in your configuration key name :D
+ *
+ * There is more, if you need to get multiple configuration value at once, separate
+ * your {coolKeyName} with "," and this automatically prohibited the use of "," sign
+ * in your configuration key name.
+ *
  * Look at your code now, it would be transform into:
  *   ConfigManager::get('coolFileName.coolKeyName,awesomeKeyName,thirdKey');
- * And for default value in case intended item not found could be assign by the next parameter,
+ *
+ * And for default value in case intended item not found could be assign by the next
+ * parameter.
  * Voila, this is your final code:
  *   ConfigManager::get('coolFileName.coolKeyName,awesomeKeyName', {default value})
  *
@@ -33,15 +40,24 @@ namespace Webarq\Manager;
 class ConfigManager
 {
     /**
+     * Successfully ConfigManager instances
+     *
      * @var array Successfully loaded object instances
      */
     protected static $instances = [];
 
     /**
+     * Configurations item collections
+     *
      * @var array Configuration collections
      */
     protected $collections = [];
 
+    /**
+     * Create ConfigManager instance
+     *
+     * @param $file
+     */
     public function __construct($file)
     {
         $this->read($file);
@@ -60,6 +76,8 @@ class ConfigManager
     }
 
     /**
+     * Get configuration value by given $path
+     *
      * @param $path
      * @param mixed $default
      * @return null
@@ -104,6 +122,8 @@ class ConfigManager
     }
 
     /**
+     * Determine configuration value that should return based on given path
+     *
      * @param ConfigManager $manager
      * @param array $key
      * @param mixed $default
@@ -120,7 +140,7 @@ class ConfigManager
     }
 
     /**
-     * Get collection value by key
+     * Get collection value by $key
      *
      * @param $key
      * @param null $default

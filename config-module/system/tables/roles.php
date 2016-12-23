@@ -8,7 +8,7 @@
 
 return [
         ['master' => 'id'],
-        ['master' => 'smallInt', 'name' => 'role_level'],
+        ['master' => 'smallInt', 'name' => 'role_level', 'notnull' => true],
         ['master' => 'uShortLabel', 'name' => 'title'],
         ['master' => 'bool', 'name' => 'is_admin'],
         ['master' => 'falseBool', 'name' => 'is_system'],

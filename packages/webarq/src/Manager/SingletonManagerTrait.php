@@ -13,6 +13,10 @@ namespace Webarq\Manager;
 
 use Wa;
 
+/**
+ * trait SingletonManagerTrait
+ * @package Webarq\Manager
+ */
 trait SingletonManagerTrait
 {
     /**

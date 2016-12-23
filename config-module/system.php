@@ -5,6 +5,8 @@
  * Time: 8:38
  * Author: Daniel Simangunsong
  *
+ * Note.
+ *
  */
 
 return [
@@ -27,12 +29,16 @@ return [
                         'actions' => [
                                 'activeness',
                                 'create' => [
+// Permission should be an array, but its okay to set it as string when you have just one item
+// By default this permission will check with OR operator, mean when admin have any one of these,
+// then it will be passed in validator manager. Assign true in to last item, to force admin
+// having all permissions
+                                        'permissions' => [
+                                                'is_system', 'activeness'
+                                        ],
 // Actions rules if any. This will be checking on routes while possible, or on admin base controller, or on
 // the related controller it self
                                         'rules' => [
-                                                'permissions' => [
-                                                        'is_system', 'activeness'
-                                                ]
                                         ],
 // Transaction form if any
                                         'form' => [

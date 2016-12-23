@@ -265,4 +265,37 @@ class Wa
         }
         return $this->html('element', $content, $container, $attr)->toHtml();
     }
+
+    /**
+     * Formatted permission into acceptable format
+     *
+     * @param array $permissions
+     * @param $module
+     * @param $panel
+     * @return array
+     */
+    public function formatPermissions($permissions = [], $module, $panel)
+    {
+// Permissions should be array
+        if (!is_array($permissions)) {
+            $permissions = [$permissions];
+        }
+
+        foreach ($permissions as &$permission) {
+            if (is_bool($permission)) {
+                continue;
+            }
+            $permission = trim($permission, '.');
+            switch(substr_count($permission, '.')) {
+                case 1 :
+                    $permission = $module . '.' . $permission;
+                    break;
+                case 0 :
+                    $permission = $module . '.' . $panel . '.' . $permission;
+                    break;
+            }
+        }
+
+        return $permissions;
+    }
 }

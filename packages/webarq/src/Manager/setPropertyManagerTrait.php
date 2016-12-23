@@ -8,10 +8,15 @@
 
 namespace Webarq\Manager;
 
-
-trait setPropertyManagerTrait
+/**
+ * Assign value into class property by pulling out their value from given options
+ *
+ * Class setPropertyManagerTrait
+ * @package Webarq\Manager
+ */
+trait SetPropertyManagerTrait
 {
-    protected function setup(array &$options = [])
+    protected function setPropertyFromOptions(array &$options = [])
     {
         if ([] !== $options) {
             if ([] !== ($vars = get_class_vars(get_called_class()))) {

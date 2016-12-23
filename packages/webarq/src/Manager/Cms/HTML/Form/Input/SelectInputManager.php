@@ -13,8 +13,11 @@ use Webarq\Manager\Cms\HTML\Form\InputManager;
 
 class SelectInputManager extends InputManager
 {
-    protected function buildInput()
+    public function buildInput()
     {
+        if (true === array_get($this->attributes, 'multiple') || in_array('multiple', $this->attributes)) {
+            $this->name .= '[]';
+        }
         return $this->form->addCollection(
                 $this->type, $this->name, array_pull($this->attributes, 'options', []),
                 $this->value, $this->attributes);

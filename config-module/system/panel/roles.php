@@ -13,13 +13,6 @@ return [
         'actions' => [
                 'activeness',
                 'create' => [
-// Actions rules if any. This will be checking on routes while possible, or on admin base controller, or on
-// the related controller it self
-                        'rules' => [
-                                'permissions' => [
-                                        'is_system', 'activeness'
-                                ]
-                        ],
 // Transaction form if any
                         'form' => [
                                 'title' => 'Create Role',
@@ -27,19 +20,25 @@ return [
 // Input key should be following "moduleName.tableName.columnName" format name
                                 'system.roles.role_level' => [
                                         'type' => 'text',
-                                        'name' => 'nyambi',
                                         'label' => 'Level',
-                                        'rules' => [
-                                                'admin.role_level' => ['>', 'value']
-                                        ]
+                                        'rules' => 'max:255|min:10'
                                 ],
                                 'system.roles.title',
                                 'system.roles.is_admin',
-                                'system.roles.is_active',
+                                'system.roles.is_active' => [
+// Mean current login admin must have activeness permission
+                                        'permissions' => 'activeness',
+                                ],
                                 'system.roles.is_system'
                         ]
                 ],
-                'edit',
+                'edit' => [
+// Actions rules if any. This will be checking on routes while possible, or on admin base controller, or on
+// the related controller it self
+                        'rules' => [
+                                'admin:level' => 'item:role_level'
+                        ]
+                ],
                 'delete',
                 'is_system'
         ]

@@ -154,7 +154,29 @@ class AdminManager extends WatchdogAbstractManager
      */
     public function hasPermission($path)
     {
-        return array_get($this->permissions, $path, false);
+        if (is_array($path)) {
+// Get operator
+            if (is_bool(last($path))) {
+                $and = array_pop($path);
+            } else {
+                $and = false;
+            }
+// Everyone is suspected as fraud
+            $hasPermission = false;
+            foreach ($path as $path1) {
+                $hasPermission = $this->hasPermission($path1);
+// Admin does not authorized into one of permissions, while all of permission should be authorized
+                if (!$hasPermission && $and) {
+                    return false;
+// Admin authorized into one of permission, and they does not needed authorisation in to all of permission
+                } elseif ($hasPermission && !$and) {
+                    return true;
+                }
+            }
+            return $hasPermission;
+        } else {
+            return array_get($this->permissions, $path, false);
+        }
     }
 
     /**
@@ -170,10 +192,17 @@ class AdminManager extends WatchdogAbstractManager
      * Get admin levels
      *
      * @param bool|false $highest Set to true to get highest levels
-     * @return mixed
+     * @return array|number
      */
     public function getLevel($highest = false)
     {
-        return true === $highest ? min($this->levels) : $this->levels;
+        static $local;
+        if (true === $highest) {
+            if (!isset($local)) {
+                $local = min($this->levels);
+            }
+            return $local;
+        }
+        return $this->levels;
     }
 }

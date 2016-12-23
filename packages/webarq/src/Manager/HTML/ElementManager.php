@@ -15,6 +15,13 @@ use Html;
 use Illuminate\Contracts\Support\Htmlable;
 
 
+/**
+ * Helper class
+ * Generate formatted html element by given $content, $container, and $attr
+ *
+ * Class ElementManager
+ * @package Webarq\Manager\HTML
+ */
 class ElementManager implements Htmlable
 {
     /**
@@ -46,7 +53,7 @@ class ElementManager implements Htmlable
     protected $void = ['br', 'hr', 'img', 'input', 'button'];
 
     /**
-     * Wrap your html
+     * Create ElementManager instance
      *
      * @param $content
      * @param string $container HTML tag|elements without content
@@ -72,6 +79,12 @@ class ElementManager implements Htmlable
         return $this;
     }
 
+    /**
+     * Set HTML container attributes
+     *
+     * @param array $attr
+     * @return $this
+     */
     public function setAttr($attr = [])
     {
         if (!is_array($attr)) {
@@ -92,6 +105,12 @@ class ElementManager implements Htmlable
         return $this->container;
     }
 
+    /**
+     * Set HTML container
+     *
+     * @param $container
+     * @return $this
+     */
     public function setContainer($container)
     {
         $this->container = $container;
@@ -99,6 +118,11 @@ class ElementManager implements Htmlable
         return $this;
     }
 
+    /**
+     * Create HTML element
+     *
+     * @return string
+     */
     public function toHtml()
     {
         $this->compile($this->html, $this->container, $this->attr);
@@ -107,6 +131,8 @@ class ElementManager implements Htmlable
     }
 
     /**
+     * Compile given $html, $container and $attr
+     *
      * @param string $html
      * @param string $container
      * @param array $attr
@@ -127,6 +153,14 @@ class ElementManager implements Htmlable
         }
     }
 
+    /**
+     * Generate well formatted html element
+     *
+     * @param $html
+     * @param $tag
+     * @param array $attr
+     * @return string
+     */
     protected function buildContent($html, $tag, $attr = [])
     {
 // Splits tag
@@ -159,6 +193,13 @@ class ElementManager implements Htmlable
         return $o . $html . $c;
     }
 
+    /**
+     * Check if given tag contain class and id attributes
+     *
+     * @param $string
+     * @param $tag
+     * @param array $attr
+     */
     protected function checkForBasicAttributes($string, &$tag, &$attr = [])
     {
         $string = trim($string);

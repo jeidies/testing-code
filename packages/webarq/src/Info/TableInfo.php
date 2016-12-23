@@ -12,11 +12,19 @@ namespace Webarq\Info;
 use Wa;
 use Webarq\Manager\SingletonManagerTrait;
 
+/**
+ * Helper class
+ *
+ * Class TableInfo
+ * @package Webarq\Info
+ */
 class TableInfo
 {
     use SingletonManagerTrait;
 
     /**
+     * Table columns
+     *
      * @var array object Webarq\Info\ColumnInfo
      */
     protected $columns = [];
@@ -29,12 +37,16 @@ class TableInfo
     protected $extra = [];
 
     /**
+     * Table column(s) that used to record any table transaction.
+     * Like who doing what
+     *
      * @var array
      */
     protected $log = [];
 
     /**
      * Module name
+     * In what module this table is register
      *
      * @var string
      */
@@ -48,25 +60,29 @@ class TableInfo
     protected $name;
 
     /**
-     * Primary key column name
+     * Table primary column name
      *
      * @var object Webarq\Info\ColumnInfo
      */
     protected $primaryColumn;
 
     /**
+     * Is table multilingual?
+     *
      * @var bool
      */
     protected $multilingual = false;
 
     /**
-     * Table options serialization
+     * Serialize table options
      *
      * @var array
      */
     protected $serialize;
 
     /**
+     * Create TableInfo instance
+     *
      * @param $name
      * @param $module
      * @param array $options
@@ -112,7 +128,7 @@ class TableInfo
     }
 
     /**
-     * Set column options in to table
+     * Set table column
      *
      * @param array $options
      */
@@ -131,7 +147,7 @@ class TableInfo
     }
 
     /**
-     * Get column options from table by column name
+     * Get column item by given $name
      *
      * @param $name
      * @return mixed
@@ -142,6 +158,8 @@ class TableInfo
     }
 
     /**
+     * Get all table column items
+     *
      * @return array
      */
     public function getColumns()
@@ -150,6 +168,8 @@ class TableInfo
     }
 
     /**
+     * Get table log information by given $key
+     *
      * @param $key
      * @param null $default
      * @return mixed
@@ -160,6 +180,8 @@ class TableInfo
     }
 
     /**
+     * Get all logs
+     *
      * @return array
      */
     public function getLogs()
@@ -177,12 +199,19 @@ class TableInfo
         return $this->module;
     }
 
+    /**
+     * Get table name
+     *
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 
     /**
+     * Get table primary column
+     *
      * @return string
      */
     public function primaryColumn()
@@ -190,12 +219,19 @@ class TableInfo
         return $this->primaryColumn;
     }
 
+    /**
+     * Is table multilingual?
+     *
+     * @return bool
+     */
     public function isMultiLingual()
     {
         return $this->multilingual;
     }
 
     /**
+     * Get table extra information by given $key
+     *
      * @param $key
      * @param null $default
      * @return mixed
@@ -205,11 +241,21 @@ class TableInfo
         return array_get($this->extra, $key, $default);
     }
 
+    /**
+     * Unserialize table options which already serialized
+     *
+     * @return array|string
+     */
     public function getSerialize()
     {
         return $this->serialize;
     }
 
+    /**
+     * Get table reference key
+     *
+     * @return string
+     */
     public function getReferenceKeyName()
     {
         return str_singular($this->name) . '_id';

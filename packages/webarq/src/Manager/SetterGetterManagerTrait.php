@@ -11,6 +11,10 @@ namespace Webarq\Manager;
 
 use Illuminate\Support\Str;
 
+/**
+ * Class SetterGetterManagerTrait
+ * @package Webarq\Manager
+ */
 trait SetterGetterManagerTrait {
     /**
      * @var array

@@ -41,7 +41,7 @@ class InputManager implements Htmlable
      * @param array $args
      * @param null $label
      * @param null $info
-     * @param string $container
+     * @param string|array $container
      */
     public function __construct(array $args, $label = null, $info = null, $container = '<div class="form-group"></div>')
     {

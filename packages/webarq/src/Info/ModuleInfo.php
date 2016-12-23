@@ -12,6 +12,12 @@ namespace Webarq\Info;
 use Wa;
 use Webarq\Manager\SingletonManagerTrait as Singleton;
 
+/**
+ * Helper class
+ *
+ * Class ModuleInfo
+ * @package Webarq\Info
+ */
 class ModuleInfo
 {
     use Singleton;
@@ -44,6 +50,12 @@ class ModuleInfo
      */
     protected $tables = [];
 
+    /**
+     * Create ModuleInfo instance
+     *
+     * @param $name
+     * @param array $configs
+     */
     public function __construct($name, array $configs = [])
     {
         $this->name = $name;
@@ -68,6 +80,8 @@ class ModuleInfo
     }
 
     /**
+     * Set module tables information
+     *
      * @param array $tables
      */
     private function setupTables(array $tables)
@@ -81,6 +95,8 @@ class ModuleInfo
     }
 
     /**
+     * Set module panels
+     *
      * @param array $options
      */
     private function setupPanels(array $options)
@@ -96,22 +112,41 @@ class ModuleInfo
         }
     }
 
+    /**
+     * Get module configuration item, by given $key
+     *
+     * @param $key
+     * @param null $default
+     * @return mixed
+     */
     public function getConfig($key, $default = null)
     {
         return array_get($this->configs, $key, $default);
     }
 
+    /**
+     * Get all module configuration
+     *
+     * @return array
+     */
     public function getConfigs()
     {
         return $this->configs;
     }
 
+    /**
+     * Get module name
+     *
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 
     /**
+     * Get module table item by given $name
+     *
      * @param $name
      * @return object Webarq\Info\TableInfo
      */
@@ -121,6 +156,11 @@ class ModuleInfo
                 $name, $this->name, Wa::config($this->name . '.tables.' . $name, [])));
     }
 
+    /**
+     * Get all module tables
+     *
+     * @return array
+     */
     public function getTables()
     {
         return $this->tables;
@@ -138,6 +178,8 @@ class ModuleInfo
     }
 
     /**
+     * Get module panel item, by given $key
+     *
      * @param mixed $key
      * @param mixed $default
      * @return mixed|object Webarq\Info\PanelInfo
