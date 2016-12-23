@@ -94,6 +94,13 @@ class InputManager
     protected $rules = [];
 
     /**
+     * Input error message when value is not match
+     *
+     * @var array
+     */
+    protected $errorMessage = [];
+
+    /**
      * Input container
      *
      * @var string
@@ -141,7 +148,7 @@ class InputManager
         $this->name = $name;
         $this->value = $value;
 
-        $this->setPropertyFromOptions($attributes);
+        $this->setPropertyFromOptions($attributes,1);
 
         $this->getRulesFromAttributes($attributes);
 

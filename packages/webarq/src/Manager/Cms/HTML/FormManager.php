@@ -114,6 +114,13 @@ class FormManager implements Htmlable
     protected $rules = [];
 
     /**
+     * Input error message when value is not match
+     *
+     * @var array
+     */
+    protected $errorMessage = [];
+
+    /**
      * Master table name
      *
      * @var string
@@ -250,11 +257,18 @@ class FormManager implements Htmlable
         if ([] === $input->permissions || \Auth::user()->hasPermission(
                         Wa::formatPermissions($input->permissions, $this->module, $this->panel))
         ) {
-
             $this->pairs[$name] = $path;
-            if (null !== $input->rules) {
+
+            if ([] !== $input->rules) {
                 $this->rules[$name] = $input->rules;
             }
+
+            if ([] !== $input->errorMessage) {
+                foreach ($input->errorMessage as $validationType => $message) {
+                    $this->errorMessage[$name . '.' . $validationType] = $message;
+                }
+            }
+
             $input->buildInput();
         }
     }
@@ -320,13 +334,23 @@ class FormManager implements Htmlable
     }
 
     /**
-     * Get form rules
+     * Get form input rules
      *
      * @return array
      */
     public function getRules()
     {
         return $this->rules;
+    }
+
+    /**
+     * Get form input error messages
+     *
+     * @return array
+     */
+    public function getErrorMessage()
+    {
+        return $this->errorMessage;
     }
 
     /**

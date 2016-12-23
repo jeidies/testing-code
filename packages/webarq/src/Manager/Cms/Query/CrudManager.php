@@ -28,6 +28,13 @@ class CrudManager
     protected $admin;
 
     /**
+     * Input error messages
+     *
+     * @var
+     */
+    protected $errorMessages;
+
+    /**
      * Input rules
      *
      * @var array
@@ -66,17 +73,19 @@ class CrudManager
      * Create InsertQueryManager instance
      *
      * @param AdminManager $admin
+     * @param array $errorMessages
      * @param array $rules
      * @param array $pairs
      * @param array $post
      * @param null $master
      */
-    public function __construct(AdminManager $admin, array $rules, array $pairs, array $post, $master = null)
+    public function __construct(
+            AdminManager $admin, array $rules, array $pairs, array $post, array $errorMessages, $master = null)
     {
         $this->admin = $admin;
         $this->rules = $rules;
         $this->post = $post;
-
+        $this->errorMessages = $errorMessages;
         $this->pairingData($pairs, $post);
         $this->setMasterTable($master);
 
@@ -97,6 +106,10 @@ class CrudManager
             }
         }
     }
+
+    /**
+     * @param $master
+     */
     protected function setMasterTable($master)
     {
         if (!isset($master)) {
@@ -108,12 +121,17 @@ class CrudManager
         }
     }
 
+    /**
+     * @return bool|array
+     */
     public function insert()
     {
-        if (Wa::manager('cms.query.validator', $this->admin, $this->rules, $this->post)->valid()) {
-
+        $validator = Wa::manager('cms.query.validator', $this->admin, $this->rules, $this->post, $this->errorMessages)
+                ->make();
+        if ($validator->fails()) {
+            return $validator->errors()->all();
         }
-        dd(array_values($this->pairs), $this->post);
+        return true;
     }
 
     public function update()

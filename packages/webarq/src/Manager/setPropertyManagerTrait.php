@@ -21,7 +21,7 @@ trait SetPropertyManagerTrait
         if ([] !== $options) {
             if ([] !== ($vars = get_class_vars(get_called_class()))) {
                 foreach (array_keys($vars) as $key) {
-                    $this->{$key} = array_pull($options, $key, $this->{$key});
+                    $this->{$key} = array_pull($options, snake_case($key, '-'), $this->{$key});
                 }
             }
         }

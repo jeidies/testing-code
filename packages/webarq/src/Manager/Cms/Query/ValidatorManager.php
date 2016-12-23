@@ -28,6 +28,13 @@ class ValidatorManager
     protected $rules = [];
 
     /**
+     * Input error messages
+     *
+     * @var
+     */
+    protected $errorMessages;
+
+    /**
      * Rule collection callback
      *
      * @var array
@@ -56,7 +63,7 @@ class ValidatorManager
      * @var array
      */
     protected $synonyms = [
-        'length' => 'max'
+            'length' => 'max'
     ];
 
     /**
@@ -65,14 +72,18 @@ class ValidatorManager
      * @param AdminManager $admin
      * @param array $rules
      * @param array $post
+     * @param array $errorMessages
      */
-    public function __construct(AdminManager $admin, array $rules, array $post)
+    public function __construct(AdminManager $admin, array $rules, array $post, array $errorMessages = [])
     {
         $this->admin = $admin;
+
         $this->post = $post;
 
         $this->synonyms += config('webarq.laravel.synonyms', []);
-        dd($this->synonyms);
+
+        $this->errorMessages = $errorMessages;
+
         $this->compileRules($rules);
     }
 
@@ -92,7 +103,6 @@ class ValidatorManager
             }
             $this->toLaravelRule($input, $groups);
         }
-        dd($rules, $this->rules);
     }
 
     /**
@@ -179,8 +189,8 @@ class ValidatorManager
         return array_get($this->synonyms, $key, $key);
     }
 
-    public function valid()
+    public function make()
     {
-
+        return \Validator::make($this->post, $this->rules, $this->errorMessages);
     }
 }

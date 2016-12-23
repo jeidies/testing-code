@@ -21,7 +21,10 @@ return [
                                 'system.roles.role_level' => [
                                         'type' => 'text',
                                         'label' => 'Level',
-                                        'rules' => 'max:255|min:10'
+                                        'rules' => 'max:255|min:10',
+                                        'error-message' => [
+                                                'required' => 'Role level should not be empty'
+                                        ]
                                 ],
                                 'system.roles.title',
                                 'system.roles.is_admin',
